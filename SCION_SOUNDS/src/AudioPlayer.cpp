@@ -5,6 +5,7 @@ namespace Scion::Sounds
 {
 
 AudioPlayer::AudioPlayer( int numTracks, const SDL_AudioSpec& spec )
+	: m_NumTracks{ numTracks }
 {
 	SDL_AudioDeviceID audioDevice = SDL_OpenAudioDevice( SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec );
 	if ( audioDevice == 0 )
@@ -24,20 +25,20 @@ AudioPlayer::AudioPlayer( int numTracks, const SDL_AudioSpec& spec )
 		throw std::runtime_error( "Failed to create audio player. Mixer was invalid" );
 	}
 
-	if ( numTracks > 128 )
+	if ( m_NumTracks > 128 )
 	{
-		SCION_ERROR( "Only 128 tracks are supported. 128 Tracks created" );
-		numTracks = 128;
+		SCION_WARN( "Only 128 tracks are supported. 128 Tracks created" );
+		m_NumTracks = 128;
 	}
 
-	if ( numTracks < 0 )
+	if ( m_NumTracks < 0 )
 	{
 		SCION_ERROR( "Number of tracks must be greater than zero. No Tracks created" );
-		numTracks = 0;
+		m_NumTracks = 0;
 	}
 
 	// Create the default channels
-	for ( int i = 0; i < numTracks; ++i )
+	for ( int i = 0; i < m_NumTracks; ++i )
 	{
 		m_Tracks[ i ] = MIX_CreateTrack( m_pMixer.get() );
 	}
@@ -56,7 +57,7 @@ AudioPlayer::~AudioPlayer()
 
 bool AudioPlayer::PlayTrack( int trackNum, int loops )
 {
-	if ( trackNum >= m_Tracks.size() )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() )
 	{
 		SCION_ERROR( "Trying to play an invalid track" );
 		return false;
@@ -84,7 +85,7 @@ bool AudioPlayer::PlayTrack( int trackNum, int loops )
 
 bool AudioPlayer::PlayTrack( int trackNum, MIX_Audio* pAudio, int loops )
 {
-	if ( trackNum >= static_cast<int>( m_Tracks.size() ) )
+	if ( trackNum < -1 || trackNum >= m_NumTracks || trackNum >= static_cast<int>( m_Tracks.size() ) )
 	{
 		SCION_ERROR( "Trying to play an invalid track" );
 		return false;
@@ -103,7 +104,7 @@ bool AudioPlayer::PlayTrack( int trackNum, MIX_Audio* pAudio, int loops )
 	if ( trackNum == -1 )
 	{
 		bool bPlayedTrack{ false };
-		for ( size_t i = 0; i < m_Tracks.size(); ++i )
+		for ( size_t i = 0; i < m_NumTracks; ++i )
 		{
 			if ( !MIX_TrackPlaying( m_Tracks[ i ] ) )
 			{
@@ -154,7 +155,7 @@ bool AudioPlayer::PlayTrack( int trackNum, MIX_Audio* pAudio, int loops )
 
 bool AudioPlayer::FadeInAudio( int trackNum, MIX_Audio* pAudio, int milliseconds )
 {
-	if ( trackNum >= m_Tracks.size() )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() )
 	{
 		SCION_WARN( "Trying to play an invalid track" );
 		return false;
@@ -188,9 +189,9 @@ bool AudioPlayer::FadeInAudio( int trackNum, MIX_Audio* pAudio, int milliseconds
 
 bool AudioPlayer::StopTrack( int trackNum, int fadeOutFrames )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to stop track [{}] - Track is invalid." );
+		SCION_ERROR( "Failed to stop track [{}] - Track is invalid.", trackNum );
 		return false;
 	}
 
@@ -210,9 +211,9 @@ void AudioPlayer::StopAllTracks()
 
 bool AudioPlayer::IsTrackPlaying( int trackNum )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to check if track is playing. Track [{}] is invalid." );
+		SCION_ERROR( "Failed to check if track is playing. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
@@ -221,9 +222,9 @@ bool AudioPlayer::IsTrackPlaying( int trackNum )
 
 bool AudioPlayer::IsTrackPaused( int trackNum )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to check if track is paused. Track [{}] is invalid." );
+		SCION_ERROR( "Failed to check if track is paused. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
@@ -232,9 +233,9 @@ bool AudioPlayer::IsTrackPaused( int trackNum )
 
 bool AudioPlayer::PauseTrack( int trackNum )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to pause track. Track [{}] is invalid." );
+		SCION_ERROR( "Failed to pause track. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
@@ -243,9 +244,9 @@ bool AudioPlayer::PauseTrack( int trackNum )
 
 bool AudioPlayer::ResumeTrack( int trackNum )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to resume track. Track [{}] is invalid." );
+		SCION_ERROR( "Failed to resume track. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
@@ -254,9 +255,9 @@ bool AudioPlayer::ResumeTrack( int trackNum )
 
 bool AudioPlayer::SetTrackVolume( int trackNum, float volume )
 {
-	if ( trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to resume track. Track [{}] is invalid." );
+		SCION_ERROR( "Failed to resume track. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
@@ -266,6 +267,66 @@ bool AudioPlayer::SetTrackVolume( int trackNum, float volume )
 	}
 
 	return MIX_SetTrackGain( m_Tracks[ trackNum ], volume );
+}
+
+bool AudioPlayer::SetMaxTracksCount( int numTracks )
+{
+	if (numTracks < 0 || numTracks > static_cast<int>(m_Tracks.size()))
+	{
+		SCION_ERROR( "Failed to set max tracks. Num Tracks [{}] is invalid.", numTracks );
+		return false;
+	}
+
+	if ( numTracks == m_NumTracks )
+	{
+		SCION_WARN( "Failed to set max tracks to [{}]. Max tracks is already set to that value.", numTracks );
+		return false;
+	}
+
+	if (numTracks < m_NumTracks)
+	{
+		for (int i = m_NumTracks - 1; i >= numTracks; --i)
+		{
+			if (auto* pTrack = m_Tracks[i])
+			{
+				MIX_DestroyTrack( pTrack );	
+			}
+		}
+	}
+	else if (numTracks > m_NumTracks)
+	{
+		for ( int i = m_NumTracks; i < numTracks; ++i )
+		{
+			// TODO: Add error handling encase this fails
+			m_Tracks[ i ]= MIX_CreateTrack( m_pMixer.get() );
+		}
+	}
+
+	m_NumTracks = numTracks;
+	return true;
+}
+
+bool AudioPlayer::SetTrackAudio( int trackNum, MIX_Audio* pAudio )
+{
+	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= static_cast<int>( m_Tracks.size() ) )
+	{
+		SCION_ERROR( "Trying to set track audio for an invalid track" );
+		return false;
+	}
+
+	if ( !pAudio )
+	{
+		SCION_ERROR( "Audio passed in for for track {} is invalid", trackNum );
+		return false;
+	}
+
+	if ( !MIX_SetTrackAudio( m_Tracks[ trackNum ], pAudio ) )
+	{
+		SCION_ERROR( "Failed to set audio for track {}. ", trackNum );
+		return false;
+	}
+
+	return true;
 }
 
 bool AudioPlayer::SetMasterVolume( float gain )

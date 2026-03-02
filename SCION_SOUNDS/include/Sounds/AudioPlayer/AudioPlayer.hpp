@@ -21,10 +21,14 @@ class AudioPlayer
 	bool IsTrackPaused( int trackNum );
 	bool PauseTrack( int trackNum );
 	bool ResumeTrack( int trackNum );
-
+	
 	bool SetTrackVolume( int trackNum, float volume );
-
 	bool SetMasterVolume( float gain );
+
+	bool SetMaxTracksCount( int numTracks );
+	int GetMaxTracksCount() const { return m_NumTracks; }
+
+	bool SetTrackAudio( int trackNum, MIX_Audio* pAudio );
 
 	inline bool PauseAll() { return MIX_PauseAllTracks( m_pMixer.get() ); }
 	inline bool ResumeAll() { return MIX_ResumeAllTracks( m_pMixer.get() ); }

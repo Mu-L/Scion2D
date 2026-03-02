@@ -67,6 +67,8 @@ class MainRegistry
 	Scion::Core::Systems::PhysicsSystem& GetPhysicsSystem();
 	Registry* GetRegistry();
 
+	bool CleanUp();
+
   private:
 	MainRegistry() = default;
 	~MainRegistry() = default;

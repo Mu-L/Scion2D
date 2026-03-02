@@ -189,5 +189,11 @@ Registry* MainRegistry::GetRegistry()
 	return m_pMainRegistry.get();
 }
 
+bool MainRegistry::CleanUp()
+{
+	m_pMainRegistry.reset( nullptr );
+	return m_pMainRegistry == nullptr;
+}
+
 
 } // namespace Scion::Core::ECS

@@ -604,6 +604,9 @@ void Application::CleanUp()
 	auto& pEditorState = MAIN_REGISTRY().GetContext<EditorStatePtr>();
 	pEditorState->Save( *pProjectInfo );
 
+	// Cleanup the registry before we shutdown sdl
+	MAIN_REGISTRY().CleanUp();
+
 	SDL_GL_DestroyContext( m_pWindow->GetGLContext() );
 	SDL_DestroyWindow( m_pWindow->GetWindow().get() );
 
