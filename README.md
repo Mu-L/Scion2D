@@ -94,7 +94,7 @@ VCPKG_DEFAULT_TRIPLET=x64-windows
 ## Install dependencies 
 - Windows
 	```
-	vcpkg install fmt glm entt glad soil2 sdl2 sdl2-mixer[mpg123] lua sol2 stb tinyfiledialogs rapidjson libzippp tinyxml2
+	vcpkg install fmt glm entt glad soil2 sdl3 sdl3-image lua sol2 stb tinyfiledialogs rapidjson libzippp tinyxml2
 	```
 - Linux[debian based]
 	```
@@ -113,7 +113,7 @@ VCPKG_DEFAULT_TRIPLET=x64-windows
 		sudo apt install build-essential
 		```
 	```
-	vcpkg install fmt glm entt glad soil2 sdl2[alsa] sdl2-mixer[mpg123] lua sol2 stb tinyfiledialogs rapidjson libzippp tinyxml2
+	vcpkg install fmt glm entt glad soil2 sdl3 sdl3-image lua sol2 stb tinyfiledialogs rapidjson libzippp tinyxml2
 	```
 
 ## Clone the repository 
@@ -172,8 +172,8 @@ Also from all the wonderful open source projects that I have been able to use in
 Check out these amazing open source projects that we are using in the engine. Make sure to give them all a star! for all of their amazing work.
 
 -   **[EnTT](https://github.com/skypjack/entt)** - Fast and reliable Entity Component System.
--   **[SDL2](https://github.com/libsdl-org/SDL)** -  a cross-platform library that provides an abstraction layer for computer multimedia hardware components.
--   **[SDL_mixer](https://github.com/libsdl-org/SDL_mixer)** - An audio mixer that supports various file formats for Simple Directmedia Layer.
+-   **[SDL3](https://github.com/libsdl-org/SDL)** -  a cross-platform library that provides an abstraction layer for computer multimedia hardware components.
+-   **[SDL3_mixer](https://github.com/libsdl-org/SDL_mixer)** - An audio mixer that supports various file formats for Simple Directmedia Layer.
 -   **[Dear ImGui](https://github.com/ocornut/imgui)** - Immediate mode GUI for C++.
 -   **[Box2D](https://github.com/erincatto/box2d)** - 2D physics engine for games.
 -   **[GLM](https://github.com/g-truc/glm)** - Mathematics library for graphics software.
