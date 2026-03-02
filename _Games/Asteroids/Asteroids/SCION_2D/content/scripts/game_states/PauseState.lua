@@ -66,7 +66,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 function PauseState:OnEnter()
 	Music.pause()
-	Sound.play("on")
+	AudioPlayer.playTrack(-1, "on")
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ function PauseState:OnExit()
 	if self.pausedLabel then
 		self.pausedLabel:destroy()
 	end
-	Sound.play("off")
+	AudioPlayer.playTrack(-1, "off")
 	
 	if Music.isPaused() then 
 		Music.resume()

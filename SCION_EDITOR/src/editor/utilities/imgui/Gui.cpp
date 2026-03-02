@@ -10,9 +10,8 @@
 #include "editor/utilities/imgui/ImGuiUtils.h"
 #include "imgui.h"
 #include <imgui_internal.h>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
-#include <SDL_opengl.h>
 // ===================================
 
 namespace Scion::Editor
@@ -64,7 +63,7 @@ bool Gui::InitImGui( Scion::Windowing::Window* pWindow )
 							  SCION_RESOURCES::CoreFonts::g_RobotoBoldFontSize,
 							  24.f );
 
-	if ( !ImGui_ImplSDL2_InitForOpenGL( pWindow->GetWindow().get(), pWindow->GetGLContext() ) )
+	if ( !ImGui_ImplSDL3_InitForOpenGL( pWindow->GetWindow().get(), pWindow->GetGLContext() ) )
 	{
 		SCION_ERROR( "Failed to intialize ImGui SDL2 for OpenGL!" );
 		return false;
@@ -82,7 +81,7 @@ bool Gui::InitImGui( Scion::Windowing::Window* pWindow )
 void Gui::Begin()
 {
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 }
 

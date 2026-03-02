@@ -18,7 +18,7 @@ class Mouse
 	const bool IsBtnJustPressed( int btn ) const;
 	const bool IsBtnJustReleased( int btn ) const;
 
-	const std::tuple<int, int> GetMouseScreenPosition();
+	const std::tuple<float, float> GetMouseScreenPosition();
 
 	inline void SetMouseWheelX( int wheel ) { m_WheelX = wheel; }
 	inline void SetMouseWheelY( int wheel ) { m_WheelY = wheel; }
@@ -35,8 +35,8 @@ class Mouse
 		{ SCION_MOUSE_RIGHT, Button{} },
 	};
 
-	int m_X{ 0 };
-	int m_Y{ 0 };
+	float m_X{ 0 };
+	float m_Y{ 0 };
 	int m_WheelX{ 0 };
 	int m_WheelY{ 0 };
 	bool m_bMouseMoving{ false };

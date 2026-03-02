@@ -1,22 +1,18 @@
-add_library(SCION_SOUNDS
-    "include/Sounds/Essentials/Music.h"
-    "src/Music.cpp"
-    "include/Sounds/Essentials/SoundFX.h"
-    "src/SoundFX.cpp"
-    "include/Sounds/Essentials/SoundParams.h"
 
-    "include/Sounds/MusicPlayer/MusicPlayer.h"
-    "src/MusicPlayer.cpp"
+file(GLOB_RECURSE AUDIO_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-    "include/Sounds/SoundPlayer/SoundFxPlayer.h"
-    "src/SoundFxPlayer.cpp")
+add_library(SCION_SOUNDS STATIC ${AUDIO_SRC})
 
 target_include_directories(
     SCION_SOUNDS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(SCION_SOUNDS
-    PRIVATE $<IF:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>,SDL2_mixer::SDL2_mixer,SDL2_mixer::SDL2_mixer-static>
-    PUBLIC SCION_UTILITIES)
+target_link_libraries(
+	SCION_SOUNDS
+	PRIVATE
+	SCION_UTILITIES
+	sol2::sol2
+	${LUA_LIBRARIES}
+)
 
 target_compile_options(
     SCION_SOUNDS PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>)

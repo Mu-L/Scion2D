@@ -22,7 +22,7 @@
 #include "ScionUtilities/ScionUtilities.h"
 
 #include <imgui.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace Scion::Editor
 {
@@ -249,7 +249,7 @@ void MenuDisplay::Draw()
 
 					bChanged = true;
 
-					auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllMusic() );
+					/*auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllMusic() );
 					musicNames.push_back( "None" );
 
 					std::string sDefaultSceneMusic{ pCurrentScene->GetDefaultMusicName() };
@@ -276,7 +276,7 @@ void MenuDisplay::Draw()
 					if ( bChanged )
 					{
 						pCurrentScene->SetDefaultMusic( sDefaultSceneMusic );
-					}
+					}*/
 
 					ImGui::TreePop();
 				}

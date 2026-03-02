@@ -7,7 +7,7 @@
 
 #include "Logger/Logger.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 using namespace Scion::Core::ECS;
 using namespace Scion::Rendering;

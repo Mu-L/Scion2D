@@ -2,7 +2,7 @@
 #include "Rendering/Essentials/Texture.h"
 #include "Rendering/Essentials/TextureLoader.h"
 #include "Logger/Logger.h"
-#include <SDL_mixer.h>
+#include <SDL3_mixer/SDL_mixer.h>
 
 using namespace Scion::Rendering;
 
@@ -113,8 +113,6 @@ bool AudioConfigInfo::UpdateSoundChannels( int numChannels )
 		AddChannels( numChannels );
 	else if ( numChannels < 0 )
 		RemoveChannels( -numChannels );
-
-	Mix_AllocateChannels( allocatedSoundChannels );
 
 	return true;
 }

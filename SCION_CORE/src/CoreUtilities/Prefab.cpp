@@ -361,7 +361,7 @@ bool Prefab::Save()
 	return true;
 }
 
-std::shared_ptr<Prefab> PrefabCreator::CreatePrefab( EPrefabType eType, Scion::Core::ECS::Entity& entityToPrefab )
+std::unique_ptr<Prefab> PrefabCreator::CreatePrefab( EPrefabType eType, Scion::Core::ECS::Entity& entityToPrefab )
 {
 	PrefabbedEntity prefabbed{};
 
@@ -426,7 +426,7 @@ std::shared_ptr<Prefab> PrefabCreator::CreatePrefab( EPrefabType eType, Scion::C
 
 	try
 	{
-		return std::make_shared<Prefab>( eType, prefabbed );
+		return std::make_unique<Prefab>( eType, prefabbed );
 	}
 	catch ( const std::exception& ex )
 	{
@@ -436,11 +436,11 @@ std::shared_ptr<Prefab> PrefabCreator::CreatePrefab( EPrefabType eType, Scion::C
 	return nullptr;
 }
 
-std::shared_ptr<Prefab> PrefabCreator::CreatePrefab( const std::string& sPrefabPath )
+std::unique_ptr<Prefab> PrefabCreator::CreatePrefab( const std::string& sPrefabPath )
 {
 	try
 	{
-		return std::make_shared<Prefab>( sPrefabPath );
+		return std::make_unique<Prefab>( sPrefabPath );
 	}
 	catch ( const std::exception& ex )
 	{
@@ -450,7 +450,7 @@ std::shared_ptr<Prefab> PrefabCreator::CreatePrefab( const std::string& sPrefabP
 	return nullptr;
 }
 
-std::shared_ptr<Scion::Core::ECS::Entity> PrefabCreator::AddPrefabToScene( const Prefab& prefab,
+std::unique_ptr<Scion::Core::ECS::Entity> PrefabCreator::AddPrefabToScene( const Prefab& prefab,
 																		  Scion::Core::ECS::Registry& registry )
 {
 	const auto& prefabbed = prefab.GetPrefabbedEntity();
@@ -470,7 +470,7 @@ std::shared_ptr<Scion::Core::ECS::Entity> PrefabCreator::AddPrefabToScene( const
 
 	sTag = sCheckTag;
 
-	auto newEnt = std::make_shared<Scion::Core::ECS::Entity>( &registry, sTag, prefabbed.id->group );
+	auto newEnt = std::make_unique<Scion::Core::ECS::Entity>( &registry, sTag, prefabbed.id->group );
 
 	newEnt->AddComponent<TransformComponent>( prefabbed.transform );
 	if ( prefabbed.sprite )

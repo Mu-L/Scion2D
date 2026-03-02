@@ -18,11 +18,12 @@
 #include <Rendering/Essentials/Shader.h>
 #include <Rendering/Essentials/Texture.h>
 #include <Rendering/Essentials/Font.h>
-#include <Sounds/Essentials/Music.h>
-#include <Sounds/Essentials/SoundFX.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
+
+#include "Sounds/Essentials/Audio.hpp"
+#include "Sounds/Essentials/Utilities.hpp"
 
 using namespace Scion::Filesystem;
 
@@ -34,7 +35,7 @@ static const std::map<Scion::Core::EProjectFolderType, std::string> mapProjectDi
 		{ Scion::Core::EProjectFolderType::Assets,		"content/assets" },
 		{ Scion::Core::EProjectFolderType::SoundFx,		"content/assets/soundfx" },
 		{ Scion::Core::EProjectFolderType::Music,		"content/assets/music" },
-		{ Scion::Core::EProjectFolderType::Textures,		"content/assets/textures" },
+		{ Scion::Core::EProjectFolderType::Textures,	"content/assets/textures" },
 		{ Scion::Core::EProjectFolderType::Shaders,		"content/assets/shaders" },
 		{ Scion::Core::EProjectFolderType::Fonts,		"content/assets/fonts" },
 		{ Scion::Core::EProjectFolderType::Prefabs,		"content/assets/prefabs" },
@@ -318,7 +319,7 @@ bool ProjectLoader::LoadProject( const std::string& sFilepath )
 			std::string sJsonSoundFxPath = jsonSoundFx[ "path" ].GetString();
 			fs::path soundFxPath = *optContentFolderPath / sJsonSoundFxPath;
 
-			if ( !assetManager.AddSoundFx( sSoundFxName, soundFxPath.string() ) )
+			if ( !assetManager.AddAudio( sSoundFxName, soundFxPath.string(), Scion::Sounds::AudioType::Soundfx ) )
 			{
 				SCION_ERROR( "Failed to load soundfx [{}] at path [{}]", sSoundFxName, soundFxPath.string() );
 				// Should we stop loading or finish??
@@ -343,14 +344,14 @@ bool ProjectLoader::LoadProject( const std::string& sFilepath )
 			std::string sJsonMusicPath = jsonMusic[ "path" ].GetString();
 			fs::path musicPath = *optContentFolderPath / sJsonMusicPath;
 
-			if ( !assetManager.AddMusic( sMusicName, musicPath.string() ) )
+			if ( !assetManager.AddAudio( sMusicName, musicPath.string(), Scion::Sounds::AudioType::Music ) )
 			{
 				SCION_ERROR( "Failed to load music [{}] at path [{}]", sMusicName, musicPath.string() );
 				// Should we stop loading or finish??
 			}
 		}
 	}
-
+	
 	// Load all fonts to the asset manager
 	if ( assets.HasMember( "fonts" ) )
 	{
@@ -589,24 +590,30 @@ bool ProjectLoader::SaveLoadedProject( const Scion::Core::ProjectInfo& projectIn
 	pSerializer->EndArray(); // Textures
 
 	pSerializer->StartNewArray( "soundfx" );
-	for ( const auto& [ sName, pSound ] : assetManager.GetAllSoundFx() )
+	for ( const auto& [ sName, pAudio ] : assetManager.GetAllAudio() )
 	{
-		std::string sSoundFxPath = pSound->GetFilename().substr( pSound->GetFilename().find( ASSETS ) );
-		pSerializer->StartNewObject()
-			.AddKeyValuePair( "name", sName )
-			.AddKeyValuePair( "path", sSoundFxPath )
-			.EndObject();
+		if ( pAudio->GetType() == Scion::Sounds::AudioType::Soundfx )
+		{
+			std::string sSoundFxPath = pAudio->GetFilename().substr( pAudio->GetFilename().find( ASSETS ) );
+			pSerializer->StartNewObject()
+				.AddKeyValuePair( "name", sName )
+				.AddKeyValuePair( "path", sSoundFxPath )
+				.EndObject();
+		}
 	}
 	pSerializer->EndArray(); // SoundFx
 
 	pSerializer->StartNewArray( "music" );
-	for ( const auto& [ sName, pMusic ] : assetManager.GetAllMusic() )
+	for ( const auto& [ sName, pAudio ] : assetManager.GetAllAudio() )
 	{
-		std::string sMusicPath = pMusic->GetFilename().substr( pMusic->GetFilename().find( ASSETS ) );
-		pSerializer->StartNewObject()
-			.AddKeyValuePair( "name", sName )
-			.AddKeyValuePair( "path", sMusicPath )
-			.EndObject();
+		if ( pAudio->GetType() == Scion::Sounds::AudioType::Music )
+		{
+			std::string sMusicPath = pAudio->GetFilename().substr( pAudio->GetFilename().find( ASSETS ) );
+			pSerializer->StartNewObject()
+				.AddKeyValuePair( "name", sName )
+				.AddKeyValuePair( "path", sMusicPath )
+				.EndObject();
+		}
 	}
 	pSerializer->EndArray(); // Music
 

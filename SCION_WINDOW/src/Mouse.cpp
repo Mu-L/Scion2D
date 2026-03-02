@@ -1,5 +1,5 @@
 #include "Windowing/Inputs/Mouse.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <Logger/Logger.h>
 
 namespace Scion::Windowing::Inputs
@@ -105,7 +105,7 @@ const bool Mouse::IsBtnJustReleased( int btn ) const
 	return btnItr->second.bJustReleased;
 }
 
-const std::tuple<int, int> Mouse::GetMouseScreenPosition()
+const std::tuple<float, float> Mouse::GetMouseScreenPosition()
 {
 	SDL_GetMouseState( &m_X, &m_Y );
 	return std::make_tuple( m_X, m_Y );

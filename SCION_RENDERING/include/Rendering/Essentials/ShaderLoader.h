@@ -8,8 +8,8 @@ class ShaderLoader
 {
   public:
 	ShaderLoader() = delete;
-	static std::shared_ptr<Shader> Create( const std::string& vertexShaderPath, const std::string& fragmentShaderPath );
-	static std::shared_ptr<Shader> CreateFromMemory( const char* vertexShader, const char* fragmentShader );
+	static std::unique_ptr<Shader> Create( const std::string& vertexShaderPath, const std::string& fragmentShaderPath );
+	static std::unique_ptr<Shader> CreateFromMemory( const char* vertexShader, const char* fragmentShader );
 	static bool Destroy( Shader* pShader );
 
   private:

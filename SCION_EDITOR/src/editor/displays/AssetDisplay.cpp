@@ -19,12 +19,11 @@
 #include <Rendering/Essentials/Shader.h>
 #include <Rendering/Essentials/Texture.h>
 #include <Rendering/Essentials/Font.h>
-#include <Sounds/Essentials/Music.h>
-#include <Sounds/Essentials/SoundFX.h>
-#include <Sounds/MusicPlayer/MusicPlayer.h>
-#include <Sounds/SoundPlayer/SoundFxPlayer.h>
 #include <ScionFilesystem/Process/FileProcessor.h>
 #include <ScionFilesystem/Utilities/FilesystemUtilities.h>
+
+#include "Sounds/AudioPlayer/AudioPlayer.hpp"
+#include "Sounds/Essentials/Audio.hpp"
 
 #include <imgui.h>
 
@@ -260,19 +259,20 @@ void AssetDisplay::OpenAssetContext( const std::string& sAssetName )
 
 void AssetDisplay::DrawSoundContext( const std::string& sAssetName )
 {
+	auto& audioPlayer = MAIN_REGISTRY().GetAudioPlayer();
+
 	if ( m_eSelectedType == Scion::Utilities::AssetType::MUSIC )
 	{
 		ImGui::SeparatorText( "Music Controls" );
-		auto& musicPlayer = MAIN_REGISTRY().GetMusicPlayer();
 
-		if ( !musicPlayer.IsPlaying() )
+		if ( !audioPlayer.IsTrackPlaying( 0 ) )
 		{
 			if ( ImGui::Selectable( ICON_FA_PLAY " Play" ) )
 			{
 				auto& assetManager = MAIN_REGISTRY().GetAssetManager();
-				if ( auto pMusic = assetManager.GetMusic( sAssetName ) )
+				if ( auto pMusic = assetManager.GetAudio( sAssetName ) )
 				{
-					musicPlayer.Play( *pMusic );
+					audioPlayer.PlayTrack( 0, pMusic->GetAudioPtr(), 0 );
 				}
 			}
 
@@ -288,23 +288,22 @@ void AssetDisplay::DrawSoundContext( const std::string& sAssetName )
 
 			if ( ImGui::Selectable( ICON_FA_STOP " Stop" ) )
 			{
-				musicPlayer.Stop();
+				audioPlayer.StopTrack( 0 );
 			}
 		}
 	}
 	else if ( m_eSelectedType == Scion::Utilities::AssetType::SOUNDFX )
 	{
 		ImGui::SeparatorText( "Sound Controls" );
-		auto& soundPlayer = MAIN_REGISTRY().GetSoundPlayer();
 
-		if ( !soundPlayer.IsPlaying( 0 ) )
+		if ( !audioPlayer.IsTrackPlaying( 0 ) )
 		{
 			if ( ImGui::Selectable( ICON_FA_PLAY " Play" ) )
 			{
 				auto& assetManager = MAIN_REGISTRY().GetAssetManager();
-				if ( auto pSoundfx = assetManager.GetSoundFx( sAssetName ) )
+				if ( auto pSoundfx = assetManager.GetAudio( sAssetName ) )
 				{
-					soundPlayer.Play( *pSoundfx, 0, 0 );
+					audioPlayer.PlayTrack( 0, pSoundfx->GetAudioPtr(), 0 );
 				}
 			}
 
@@ -320,7 +319,7 @@ void AssetDisplay::DrawSoundContext( const std::string& sAssetName )
 
 			if ( ImGui::Selectable( ICON_FA_STOP " Stop" ) )
 			{
-				soundPlayer.Stop( 0 );
+				audioPlayer.StopTrack( 0 );
 			}
 		}
 	}

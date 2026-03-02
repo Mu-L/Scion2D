@@ -46,11 +46,15 @@ endif()
 add_compile_definitions(SOL_ALL_SAFETIES_ON=1)
 add_compile_definitions(SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
 
+add_definitions(-DSDL_IMAGE_STATIC=ON)
+add_definitions(-DSDL_STATIC=ON)
+set(SDLMIXER_VENDORED OFF CACHE BOOL "Do not use vendored libraries" FORCE)
+
 find_package(glad CONFIG REQUIRED)
 find_package(soil2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
-find_package(SDL2_mixer CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL3_image CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Lua REQUIRED)
@@ -62,6 +66,8 @@ find_package(libzippp CONFIG REQUIRED)
 add_subdirectory(shared_pch)
 # Register pch.hpp as a precompiled header
 target_precompile_headers(PCH PUBLIC ${PCH_DIR}/pch.hpp)
+
+include(cmake/SDL3_mixer.cmake)
 
 add_subdirectory(SCION_LOGGER)
 add_subdirectory(SCION_UTILITIES)

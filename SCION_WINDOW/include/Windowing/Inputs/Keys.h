@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL.h>
+#include <SDL3/SDL.h>
 /*
  *  The key numbers are defined based on SDLK key code values
  */
@@ -14,11 +14,11 @@ constexpr int SCION_KEY_PAUSE = SDLK_PAUSE;
 constexpr int SCION_KEY_ESCAPE = SDLK_ESCAPE;
 constexpr int SCION_KEY_SPACE = SDLK_SPACE;
 constexpr int SCION_KEY_EXCLAIM = SDLK_EXCLAIM;
-constexpr int SCION_KEY_QUOTEDBL = SDLK_QUOTEDBL;
+constexpr int SCION_KEY_QUOTEDBL = SDLK_DBLAPOSTROPHE;
 constexpr int SCION_KEY_HASH = SDLK_HASH;
 constexpr int SCION_KEY_DOLLAR = SDLK_DOLLAR;
 constexpr int SCION_KEY_AMPERSAND = SDLK_AMPERSAND;
-constexpr int SCION_KEY_QUOTE = SDLK_QUOTE;
+constexpr int SCION_KEY_QUOTE = SDLK_APOSTROPHE;
 constexpr int SCION_KEY_LEFTPAREN = SDLK_LEFTPAREN;
 constexpr int SCION_KEY_RIGHTPAREN = SDLK_RIGHTPAREN;
 constexpr int SCION_KEY_ASTERISK = SDLK_ASTERISK;
@@ -52,33 +52,33 @@ constexpr int SCION_KEY_BACKSLASH = SDLK_BACKSLASH;
 constexpr int SCION_KEY_RIGHTBRACKET = SDLK_RIGHTBRACKET;
 constexpr int SCION_KEY_CARET = SDLK_CARET;
 constexpr int SCION_KEY_UNDERSCORE = SDLK_UNDERSCORE;
-constexpr int SCION_KEY_BACKQUOTE = SDLK_BACKQUOTE;
-constexpr int SCION_KEY_A = SDLK_a;
-constexpr int SCION_KEY_B = SDLK_b;
-constexpr int SCION_KEY_C = SDLK_c;
-constexpr int SCION_KEY_D = SDLK_d;
-constexpr int SCION_KEY_E = SDLK_e;
-constexpr int SCION_KEY_F = SDLK_f;
-constexpr int SCION_KEY_G = SDLK_g;
-constexpr int SCION_KEY_H = SDLK_h;
-constexpr int SCION_KEY_I = SDLK_i;
-constexpr int SCION_KEY_J = SDLK_j;
-constexpr int SCION_KEY_K = SDLK_k;
-constexpr int SCION_KEY_L = SDLK_l;
-constexpr int SCION_KEY_M = SDLK_m;
-constexpr int SCION_KEY_N = SDLK_n;
-constexpr int SCION_KEY_O = SDLK_o;
-constexpr int SCION_KEY_P = SDLK_p;
-constexpr int SCION_KEY_Q = SDLK_q;
-constexpr int SCION_KEY_R = SDLK_r;
-constexpr int SCION_KEY_S = SDLK_s;
-constexpr int SCION_KEY_T = SDLK_t;
-constexpr int SCION_KEY_U = SDLK_u;
-constexpr int SCION_KEY_V = SDLK_v;
-constexpr int SCION_KEY_W = SDLK_w;
-constexpr int SCION_KEY_X = SDLK_x;
-constexpr int SCION_KEY_Y = SDLK_y;
-constexpr int SCION_KEY_Z = SDLK_z;
+constexpr int SCION_KEY_BACKQUOTE = SDLK_GRAVE;
+constexpr int SCION_KEY_A = SDLK_A;
+constexpr int SCION_KEY_B = SDLK_B;
+constexpr int SCION_KEY_C = SDLK_C;
+constexpr int SCION_KEY_D = SDLK_D;
+constexpr int SCION_KEY_E = SDLK_E;
+constexpr int SCION_KEY_F = SDLK_F;
+constexpr int SCION_KEY_G = SDLK_G;
+constexpr int SCION_KEY_H = SDLK_H;
+constexpr int SCION_KEY_I = SDLK_I;
+constexpr int SCION_KEY_J = SDLK_J;
+constexpr int SCION_KEY_K = SDLK_K;
+constexpr int SCION_KEY_L = SDLK_L;
+constexpr int SCION_KEY_M = SDLK_M;
+constexpr int SCION_KEY_N = SDLK_N;
+constexpr int SCION_KEY_O = SDLK_O;
+constexpr int SCION_KEY_P = SDLK_P;
+constexpr int SCION_KEY_Q = SDLK_Q;
+constexpr int SCION_KEY_R = SDLK_R;
+constexpr int SCION_KEY_S = SDLK_S;
+constexpr int SCION_KEY_T = SDLK_T;
+constexpr int SCION_KEY_U = SDLK_U;
+constexpr int SCION_KEY_V = SDLK_V;
+constexpr int SCION_KEY_W = SDLK_W;
+constexpr int SCION_KEY_X = SDLK_X;
+constexpr int SCION_KEY_Y = SDLK_Y;
+constexpr int SCION_KEY_Z = SDLK_Z;
 
 constexpr int SCION_KEY_DELETE = SDLK_DELETE;
 constexpr int SCION_KEY_CAPSLOCK = SDLK_CAPSLOCK;

@@ -7,7 +7,7 @@ class Window
 {
   public:
 	Window();
-	Window( const std::string title, int width, int height, int x_pos, int y_pos, bool v_sync = true,
+	Window( const std::string title, int width, int height, bool v_sync = true,
 			Uint32 flags = ( SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE ) );
 	~Window() = default;
 
@@ -16,7 +16,7 @@ class Window
 
 	inline void SetGLContext( SDL_GLContext gl_context ) { m_GLContext = gl_context; }
 	inline SDL_GLContext& GetGLContext() { return m_GLContext; }
-	inline WindowPtr& GetWindow() { return m_pWindow; }
+	inline WindowUPtr& GetWindow() { return m_pWindow; }
 	inline const std::string& GetWindowName() const { return m_sTitle; }
 
 	inline const int GetXPos() const { return m_XPos; }
@@ -31,7 +31,7 @@ class Window
 	void CreateNewWindow( Uint32 flags );
 
   private:
-	WindowPtr m_pWindow;
+	WindowUPtr m_pWindow;
 	SDL_GLContext m_GLContext;
 	std::string m_sTitle;
 	int m_Width;

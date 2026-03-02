@@ -10,7 +10,7 @@
 namespace Scion::Rendering
 {
 
-std::shared_ptr<Font> FontLoader::Create( const std::string& fontPath, float fontSize, int width, int height )
+std::unique_ptr<Font> FontLoader::Create( const std::string& fontPath, float fontSize, int width, int height )
 {
 	std::ifstream fontStream{ fontPath, std::ios::binary };
 
@@ -65,10 +65,10 @@ std::shared_ptr<Font> FontLoader::Create( const std::string& fontPath, float fon
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	return std::make_shared<Font>( fontId, width, height, fontSize, data, fontAscent, fontPath );
+	return std::make_unique<Font>( fontId, width, height, fontSize, data, fontAscent, fontPath );
 }
 
-std::shared_ptr<Font> FontLoader::CreateFromMemory( const unsigned char* fontData, float fontSize, int width,
+std::unique_ptr<Font> FontLoader::CreateFromMemory( const unsigned char* fontData, float fontSize, int width,
 													int height )
 {
 	unsigned char* bitmap = new unsigned char[ width * height ];
@@ -108,6 +108,6 @@ std::shared_ptr<Font> FontLoader::CreateFromMemory( const unsigned char* fontDat
 
 	delete[] bitmap;
 
-	return std::make_shared<Font>( fontId, width, height, fontSize, data, fontAscent );
+	return std::make_unique<Font>( fontId, width, height, fontSize, data, fontAscent );
 }
 } // namespace Scion::Rendering

@@ -57,7 +57,7 @@ function TitleState:OnEnter()
 	-- Start background music if available
 	local sceneMusic = SceneManager.getDefaultMusic()
 	if sceneMusic then 
-		Music.play(sceneMusic)
+		AudioPlayer.playTrack(0, sceneMusic, -1)
 	end
 end
 

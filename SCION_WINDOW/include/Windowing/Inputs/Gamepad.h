@@ -16,7 +16,7 @@ class Gamepad
 	 *
 	 * @param controller SDL2 controller handle (RAII wrapped).
 	 */
-	explicit Gamepad( Controller controller );
+	explicit Gamepad( GamepadUPtr pGamepad );
 	~Gamepad() = default;
 
 	/**
@@ -139,7 +139,7 @@ class Gamepad
 	inline const std::string& GetName() const { return m_sName; }
 
   private:
-	Controller m_pController;
+	GamepadUPtr m_pController;
 	std::map<int, Button> m_mapButtons;
 	SDL_JoystickID m_InstanceID;
 	std::map<Uint8, Sint16> m_mapAxisValues;

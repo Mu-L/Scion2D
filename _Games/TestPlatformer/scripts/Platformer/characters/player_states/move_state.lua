@@ -166,5 +166,5 @@ function MoveState:ShootProjectile()
 		}
 	))
 	-- TODO: Add Sound
-	-- Sound.play("shot", 0, -1) -- Example
+	-- AudioPlayer.playTrack(-1, "shot", 0, -1) -- Example
 end

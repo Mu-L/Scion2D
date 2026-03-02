@@ -215,7 +215,7 @@ bool TextureLoader::IsPNG( const uint8_t* data, size_t size )
 	return size >= 8 && std::memcmp( data, pngSig, 8 ) == 0;
 }
 
-std::shared_ptr<Texture> TextureLoader::Create( Texture::TextureType type, const std::string& texturePath,
+std::unique_ptr<Texture> TextureLoader::Create( Texture::TextureType type, const std::string& texturePath,
 												bool bTileset )
 {
 	GLuint id;
@@ -233,10 +233,11 @@ std::shared_ptr<Texture> TextureLoader::Create( Texture::TextureType type, const
 	default: assert( false && "The current type is not defined, Please use a defined texture type!" ); return nullptr;
 	}
 
-	return bLoadSuccessful ? std::make_shared<Texture>( id, width, height, type, texturePath, bTileset ) : nullptr;
+	return bLoadSuccessful ? std::make_unique<Texture>( id, width, height, type, texturePath, bTileset ) : nullptr;
 }
 
-std::shared_ptr<Texture> TextureLoader::Create( Texture::TextureType type, int width, int height, bool bTileset )
+std::unique_ptr<Texture> TextureLoader::Create( Texture::TextureType type, int width, int height,
+														  bool bTileset )
 {
 	SCION_ASSERT( type == Texture::TextureType::FRAMEBUFFER && "Must be framebuffer type" );
 
@@ -250,13 +251,13 @@ std::shared_ptr<Texture> TextureLoader::Create( Texture::TextureType type, int w
 	glGenTextures( 1, &id );
 	if ( LoadFBTexture( id, width, height ) )
 	{
-		return std::make_shared<Texture>( id, width, height, type, "", bTileset );
+		return std::make_unique<Texture>( id, width, height, type, "", bTileset );
 	}
 
 	return nullptr;
 }
 
-std::shared_ptr<Texture> TextureLoader::CreateFromMemory( const unsigned char* imageData, size_t length, bool blended,
+std::unique_ptr<Texture> TextureLoader::CreateFromMemory( const unsigned char* imageData, size_t length, bool blended,
 														  bool bTileset )
 {
 	GLuint id;
@@ -264,7 +265,7 @@ std::shared_ptr<Texture> TextureLoader::CreateFromMemory( const unsigned char* i
 
 	if ( LoadTextureFromMemory( imageData, length, id, width, height, blended ) )
 	{
-		return std::make_shared<Texture>(
+		return std::make_unique<Texture>(
 			id, width, height, blended ? Texture::TextureType::BLENDED : Texture::TextureType::PIXEL, "", bTileset );
 	}
 

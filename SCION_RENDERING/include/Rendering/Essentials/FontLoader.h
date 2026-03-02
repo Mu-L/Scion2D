@@ -15,7 +15,7 @@ class FontLoader
 	 * texture.
 	 * @return Returns a shared_ptr to a font class if successful, nullptr otherwise.
 	 */
-	static std::shared_ptr<class Font> Create( const std::string& fontPath, float fontSize = 32.f, int width = 512,
+	static std::unique_ptr<class Font> Create( const std::string& fontPath, float fontSize = 32.f, int width = 512,
 											   int height = 512 );
 
 	/*
@@ -26,7 +26,7 @@ class FontLoader
 	 * texture.
 	 * @return Returns a shared_ptr to a font class if successful, nullptr otherwise.
 	 */
-	static std::shared_ptr<class Font> CreateFromMemory( const unsigned char* fontData, float fontSize = 32.f,
+	static std::unique_ptr<class Font> CreateFromMemory( const unsigned char* fontData, float fontSize = 32.f,
 														 int width = 512, int height = 512 );
 };
 } // namespace Scion::Rendering

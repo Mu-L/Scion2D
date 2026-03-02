@@ -71,7 +71,7 @@ struct TextGlyph
 	glm::vec2 position{ 0.f };
 	Color color{ 255, 255, 255, 255 };
 	glm::mat4 model{ 1.f };
-	std::shared_ptr<Font> font{ nullptr };
+	Font* font{ nullptr };
 	float wrap{ 0.f };
 	int padding{ 0 };
 };

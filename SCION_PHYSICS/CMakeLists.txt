@@ -16,16 +16,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(box2d)
 
 add_library(SCION_PHYSICS
-    "include/Physics/Box2DWrappers.h"
     "src/Box2DWrappers.cpp"
-    "include/Physics/ContactListener.h"
     "src/ContactListener.cpp"
-    "include/Physics/UserData.h"
     "src/UserData.cpp"
-	"include/Physics/PhysicsUtilities.h"
 	"src/PhysicsUtilities.cpp"
-	"include/Physics/BoxTraceCallback.h"
- "src/BoxTraceCallback.cpp" "include/Physics/RayCastCallback.h" "src/RayCastCallback.cpp")
+	"src/BoxTraceCallback.cpp"
+	"src/RayCastCallback.cpp"
+)
 
 target_include_directories(
     SCION_PHYSICS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

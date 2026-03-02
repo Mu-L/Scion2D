@@ -15,7 +15,7 @@ file(
 	${imgui_SOURCE_DIR}/*.cpp
 	# .cpp files for backends
 	${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
-	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
 	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
@@ -28,6 +28,6 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PUBLIC
-    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    $<IF:$<TARGET_EXISTS:SDL3::SDL3>,SDL3::SDL3,SDL3::SDL3-static>
     glad::glad
 )

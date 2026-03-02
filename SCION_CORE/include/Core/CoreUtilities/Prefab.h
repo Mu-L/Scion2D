@@ -81,9 +81,9 @@ class PrefabCreator
 {
   public:
 	PrefabCreator() = delete;
-	static std::shared_ptr<Prefab> CreatePrefab( EPrefabType eType, Scion::Core::ECS::Entity& entityToPrefab );
-	static std::shared_ptr<Prefab> CreatePrefab( const std::string& sPrefabPath );
-	static std::shared_ptr<Scion::Core::ECS::Entity> AddPrefabToScene( const Prefab& prefab,
+	static std::unique_ptr<Prefab> CreatePrefab( EPrefabType eType, Scion::Core::ECS::Entity& entityToPrefab );
+	static std::unique_ptr<Prefab> CreatePrefab( const std::string& sPrefabPath );
+	static std::unique_ptr<Scion::Core::ECS::Entity> AddPrefabToScene( const Prefab& prefab,
 																	  Scion::Core::ECS::Registry& registry );
 	static bool DeletePrefab( Prefab& prefabToDelete );
 };

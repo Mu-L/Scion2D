@@ -79,7 +79,7 @@ function Pickup:OnOverlap(ship)
 	)
 	
 	if self.soundfx then 
-		Sound.play(self.soundfx)
+		AudioPlayer.playTrack(-1, self.soundfx)
 	end
 	
 	self.pickup:destroy()
