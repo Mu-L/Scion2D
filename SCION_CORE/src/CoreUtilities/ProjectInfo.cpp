@@ -4,6 +4,10 @@
 #include "Logger/Logger.h"
 #include <SDL3_mixer/SDL_mixer.h>
 
+// Hack for Audio Channel changing -- Should trigger an event
+#include "Sounds/AudioPlayer/AudioPlayer.hpp"
+#include "Core/ECS/MainRegistry.h"
+
 using namespace Scion::Rendering;
 
 namespace Scion::Core
@@ -113,6 +117,12 @@ bool AudioConfigInfo::UpdateSoundChannels( int numChannels )
 		AddChannels( numChannels );
 	else if ( numChannels < 0 )
 		RemoveChannels( -numChannels );
+
+	if ( !MAIN_REGISTRY().GetAudioPlayer().SetMaxTracksCount( allocatedSoundChannels ) )
+	{
+		SCION_ERROR( "Failed up update sound channels" );
+		return false;
+	}
 
 	return true;
 }

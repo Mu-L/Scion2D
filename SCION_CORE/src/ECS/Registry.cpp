@@ -6,26 +6,34 @@
 
 using namespace Scion::Core::Utils;
 
-Scion::Core::ECS::Registry::Registry()
+namespace Scion::Core::ECS
+{
+
+Registry::Registry()
 	: m_pRegistry{ std::make_shared<entt::registry>() }
 {
 }
 
-void Scion::Core::ECS::Registry::ClearRegistry()
+Registry::~Registry()
 {
-	auto view = m_pRegistry->view<entt::entity>( entt::exclude<Scion::Core::ECS::PersistentComponent> );
+
+}
+
+void Registry::ClearRegistry()
+{
+	auto view = m_pRegistry->view<entt::entity>( entt::exclude<PersistentComponent> );
 	for ( auto entity : view )
 	{
 		m_pRegistry->destroy( entity );
 	}
 }
 
-void Scion::Core::ECS::Registry::AddToPendingDestruction( entt::entity entity )
+void Registry::AddToPendingDestruction( entt::entity entity )
 {
 	m_EntitiesPendingDestruction.push_back( entity );
 }
 
-void Scion::Core::ECS::Registry::ClearPendingEntities()
+void Registry::ClearPendingEntities()
 {
 	if ( m_EntitiesPendingDestruction.empty() )
 		return;
@@ -41,7 +49,7 @@ void Scion::Core::ECS::Registry::ClearPendingEntities()
 	m_EntitiesPendingDestruction.clear();
 }
 
-void Scion::Core::ECS::Registry::CreateLuaRegistryBind( sol::state& lua, Registry& registry )
+void Registry::CreateLuaRegistryBind( sol::state& lua, Registry& registry )
 {
 	lua.new_enum<ERegistryType>( "RegistryType",
 								 {
@@ -88,10 +96,10 @@ void Scion::Core::ECS::Registry::CreateLuaRegistryBind( sol::state& lua, Registr
 				++it; // Skip past the registry
 			}
 
-			for ( ; it != va.end(); ++it)
+			for ( ; it != va.end(); ++it )
 			{
 				sol::object obj = *it;
-				if ( !obj.is<sol::table>())
+				if ( !obj.is<sol::table>() )
 					continue;
 
 				sol::table type = obj.as<sol::table>();
@@ -141,3 +149,5 @@ void Scion::Core::ECS::Registry::CreateLuaRegistryBind( sol::state& lua, Registr
 		"clear",
 		[ & ]( Registry& reg ) { reg.GetRegistry().clear(); } );
 }
+
+} // namespace Scion::Core::ECS

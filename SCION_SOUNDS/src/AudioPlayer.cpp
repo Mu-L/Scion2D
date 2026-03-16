@@ -289,7 +289,8 @@ bool AudioPlayer::SetMaxTracksCount( int numTracks )
 		{
 			if (auto* pTrack = m_Tracks[i])
 			{
-				MIX_DestroyTrack( pTrack );	
+				MIX_DestroyTrack( pTrack );
+				m_Tracks[ i ] = nullptr;
 			}
 		}
 	}
