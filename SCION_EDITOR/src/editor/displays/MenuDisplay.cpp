@@ -20,6 +20,7 @@
 #include "editor/events/EditorEventTypes.h"
 
 #include "ScionUtilities/ScionUtilities.h"
+#include "Sounds/Essentials/Audio.hpp"
 
 #include <imgui.h>
 #include <SDL3/SDL.h>
@@ -249,7 +250,10 @@ void MenuDisplay::Draw()
 
 					bChanged = true;
 
-					/*auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllMusic() );
+					auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllAudio(), []( const auto& pair ) {
+						return pair.second->GetType() == Scion::Sounds::AudioType::Music;
+					} );
+
 					musicNames.push_back( "None" );
 
 					std::string sDefaultSceneMusic{ pCurrentScene->GetDefaultMusicName() };
@@ -276,7 +280,7 @@ void MenuDisplay::Draw()
 					if ( bChanged )
 					{
 						pCurrentScene->SetDefaultMusic( sDefaultSceneMusic );
-					}*/
+					}
 
 					ImGui::TreePop();
 				}

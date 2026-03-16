@@ -257,7 +257,7 @@ bool AudioPlayer::SetTrackVolume( int trackNum, float volume )
 {
 	if ( trackNum < 0 || trackNum >= m_NumTracks || trackNum >= m_Tracks.size() || !m_Tracks[ trackNum ] )
 	{
-		SCION_ERROR( "Failed to resume track. Track [{}] is invalid.", trackNum );
+		SCION_ERROR( "Failed to set track volume. Track [{}] is invalid.", trackNum );
 		return false;
 	}
 
