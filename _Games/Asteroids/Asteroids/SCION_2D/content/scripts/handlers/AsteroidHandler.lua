@@ -115,10 +115,10 @@ function AsteroidHandler:DestroyAsteroid(asteroid_id)
 	if asteroid:GetType() == "big" then 
 		self:CreateSmallFromBig(asteroid)			-- Split into small asteroids
 		gData:AddToScore(LARGE_ASTEROID_SCORE)		-- Add big asteroid score
-		Sound.play("big_ast_explosion")
+		AudioPlayer.playTrack(-1, "big_ast_explosion")
 	elseif asteroid:GetType() == "small" then
 		gData:AddToScore(SMALL_ASTEROID_SCORE)		-- Add small asteroid score
-		Sound.play("small_explosion_2")
+		AudioPlayer.playTrack(-1, "small_explosion_2")
 	end
 	
 	 -- Get asteroid position for potential pickup drop

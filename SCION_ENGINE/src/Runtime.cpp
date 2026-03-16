@@ -39,7 +39,7 @@
 #include "Core/Loaders/TilemapLoader.h"
 #include "Core/CoreUtilities/ProjectInfo.h"
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <sol/sol.hpp>
 #include <glad/glad.h>
 #include <libzippp/libzippp.h>
@@ -84,14 +84,14 @@ void RuntimeApp::Initialize()
 	SCION_INIT_CRASH_LOGS();
 
 	// Init SDL
-	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
+	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) )
 	{
 		std::string error = SDL_GetError();
 		throw std::runtime_error( fmt::format( "Failed to initialize SDL: {}", error ) );
 	}
 
 	// Set up OpenGL
-	if ( SDL_GL_LoadLibrary( NULL ) != 0 )
+	if ( !SDL_GL_LoadLibrary( NULL ) )
 	{
 		std::string error = SDL_GetError();
 		throw std::runtime_error( fmt::format( "Failed to Open GL Library: {}", error ) );
@@ -126,6 +126,7 @@ void RuntimeApp::Initialize()
 		throw std::runtime_error( "Failed to initialize the game configuration." );
 	}
 
+
 	// Set the lua state for the crash logger.
 	// This is used to log the lua stack trace in case of a crash
 	SCION_CRASH_LOGGER().SetLuaState( pLuaState->lua_state() );
@@ -137,21 +138,19 @@ void RuntimeApp::Initialize()
 
 	// Create the Window
 	m_pWindow = std::make_unique<Scion::Windowing::Window>( m_pGameConfig->sGameName.c_str(),
-														   m_pGameConfig->windowWidth,
-														   m_pGameConfig->windowHeight,
-														   SDL_WINDOWPOS_CENTERED,
-														   SDL_WINDOWPOS_CENTERED,
-														   true,
-														   m_pGameConfig->windowFlags | SDL_WINDOW_OPENGL |
-															   SDL_WINDOW_ALLOW_HIGHDPI );
+															m_pGameConfig->windowWidth,
+															m_pGameConfig->windowHeight,
+															true,
+															m_pGameConfig->windowFlags | SDL_WINDOW_OPENGL |
+																SDL_WINDOW_HIGH_PIXEL_DENSITY );
 
 	// Create the openGL context
 	m_pWindow->SetGLContext( SDL_GL_CreateContext( m_pWindow->GetWindow().get() ) );
 
 	// Initialize Glad
-	if ( gladLoadGLLoader( SDL_GL_GetProcAddress ) == 0 )
+	if ( !gladLoadGLLoader( (GLADloadproc)SDL_GL_GetProcAddress ) )
 	{
-		throw std::runtime_error( "Failed to GLAD" );
+		throw std::runtime_error( "Failed to initialize GLAD" );
 	}
 
 	if ( !m_pWindow->GetGLContext() )
@@ -549,7 +548,7 @@ bool RuntimeApp::LoadZip()
 			}
 			break;
 		}
-		case AssetType::MUSIC: {
+		/*case AssetType::MUSIC: {
 			for ( const auto& pMusicAsset : assets )
 			{
 				if ( !assetManager.AddMusicFromMemory(
@@ -570,7 +569,7 @@ bool RuntimeApp::LoadZip()
 				}
 			}
 			break;
-		}
+		}*/
 		case AssetType::FONT: {
 			for ( const auto& pFontAsset : assets )
 			{
@@ -601,27 +600,27 @@ void RuntimeApp::ProcessEvents()
 	{
 		switch ( m_Event.type )
 		{
-		case SDL_QUIT: m_bRunning = false; break;
-		case SDL_KEYDOWN:
-			keyboard.OnKeyPressed( m_Event.key.keysym.sym );
+		case SDL_EVENT_QUIT: m_bRunning = false; break;
+		case SDL_EVENT_KEY_DOWN:
+			keyboard.OnKeyPressed( m_Event.key.key );
 			EVENT_DISPATCHER().EmitEvent( Scion::Core::Events::KeyEvent{
-				.key = m_Event.key.keysym.sym, .eType = Scion::Core::Events::EKeyEventType::Pressed } );
+				.key = static_cast<int>( m_Event.key.key ), .eType = Scion::Core::Events::EKeyEventType::Pressed } );
 			break;
-		case SDL_KEYUP:
-			keyboard.OnKeyReleased( m_Event.key.keysym.sym );
+		case SDL_EVENT_KEY_UP:
+			keyboard.OnKeyReleased( m_Event.key.key );
 			EVENT_DISPATCHER().EmitEvent( Scion::Core::Events::KeyEvent{
-				.key = m_Event.key.keysym.sym, .eType = Scion::Core::Events::EKeyEventType::Released } );
+				.key = static_cast<int>( m_Event.key.key ), .eType = Scion::Core::Events::EKeyEventType::Released } );
 			break;
-		case SDL_MOUSEBUTTONDOWN: mouse.OnBtnPressed( m_Event.button.button ); break;
-		case SDL_MOUSEBUTTONUP: mouse.OnBtnReleased( m_Event.button.button ); break;
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN: mouse.OnBtnPressed( m_Event.button.button ); break;
+		case SDL_EVENT_MOUSE_BUTTON_UP: mouse.OnBtnReleased( m_Event.button.button ); break;
+		case SDL_EVENT_MOUSE_WHEEL:
 			mouse.SetMouseWheelX( m_Event.wheel.x );
 			mouse.SetMouseWheelY( m_Event.wheel.y );
 			break;
-		case SDL_MOUSEMOTION: mouse.SetMouseMoving( true ); break;
-		case SDL_CONTROLLERBUTTONDOWN: inputManager.GamepadBtnPressed( m_Event ); break;
-		case SDL_CONTROLLERBUTTONUP: inputManager.GamepadBtnReleased( m_Event ); break;
-		case SDL_CONTROLLERDEVICEADDED: {
+		case SDL_EVENT_MOUSE_MOTION: mouse.SetMouseMoving( true ); break;
+		case SDL_EVENT_GAMEPAD_BUTTON_DOWN: inputManager.GamepadBtnPressed( m_Event ); break;
+		case SDL_EVENT_GAMEPAD_BUTTON_UP: inputManager.GamepadBtnReleased( m_Event ); break;
+		case SDL_EVENT_GAMEPAD_ADDED: {
 			int index = inputManager.AddGamepad( m_Event.jdevice.which );
 			if ( index > 0 )
 			{
@@ -631,7 +630,7 @@ void RuntimeApp::ProcessEvents()
 
 			break;
 		}
-		case SDL_CONTROLLERDEVICEREMOVED: {
+		case SDL_EVENT_GAMEPAD_REMOVED: {
 			int index = inputManager.RemoveGamepad( m_Event.jdevice.which );
 
 			if ( index > 0 )
@@ -642,14 +641,10 @@ void RuntimeApp::ProcessEvents()
 
 			break;
 		}
-		case SDL_JOYAXISMOTION: inputManager.GamepadAxisValues( m_Event ); break;
-		case SDL_JOYHATMOTION: inputManager.GamepadHatValues( m_Event ); break;
-		case SDL_WINDOWEVENT: {
-			switch ( m_Event.window.event )
-			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED: m_pWindow->SetSize( m_Event.window.data1, m_Event.window.data2 ); break;
-			default: break;
-			}
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION: inputManager.GamepadAxisValues( m_Event ); break;
+		case SDL_EVENT_JOYSTICK_HAT_MOTION: inputManager.GamepadHatValues( m_Event ); break;
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
+			m_pWindow->SetSize( m_Event.window.data1, m_Event.window.data2 );
 			break;
 		}
 		default: break;

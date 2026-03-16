@@ -57,9 +57,8 @@
 // IMGUI
 // ===================================
 #include <imgui_internal.h>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
-#include <SDL_opengl.h>
 #include "editor/utilities/imgui/Gui.h"
 // ===================================
 
@@ -67,11 +66,17 @@ namespace Scion::Editor
 {
 bool Application::Initialize()
 {
-	SCION_INIT_LOGS( false, true );
+	bool bDebug{ true };
+
+#ifdef NDEBUG
+	bDebug = false;
+#endif
+
+	SCION_INIT_LOGS( bDebug, true );
 	SCION_INIT_CRASH_LOGS();
 
 	// Init SDL
-	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
+	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) )
 	{
 		std::string error = SDL_GetError();
 		SCION_ERROR( "Failed to initialize SDL: {0}", error );
@@ -79,7 +84,7 @@ bool Application::Initialize()
 	}
 
 	// Set up OpenGL
-	if ( SDL_GL_LoadLibrary( NULL ) != 0 )
+	if ( !SDL_GL_LoadLibrary( NULL ) )
 	{
 		std::string error = SDL_GetError();
 		SCION_ERROR( "Failed to Open GL Library: {0}", error );
@@ -101,15 +106,14 @@ bool Application::Initialize()
 	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 
 	// Create the Window
-	m_pWindow = std::make_unique<Scion::Windowing::Window>(
-		"SCION 2D", 800, 600, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, true, SDL_WINDOW_OPENGL );
+	m_pWindow = std::make_unique<Scion::Windowing::Window>( "SCION 2D", 800, 600, true, SDL_WINDOW_OPENGL );
 
 	/*
 	 * SDL Hack - If we create the window as borderless, we lose the icon in the title bar.
 	 * Therefore, after testing I found that if we create the window with a border, then hide
 	 * the border. When we show the border later on, the icon will be there.
 	 */
-	SDL_SetWindowBordered( m_pWindow->GetWindow().get(), SDL_FALSE );
+	SDL_SetWindowBordered( m_pWindow->GetWindow().get(), false );
 
 	if ( !m_pWindow->GetWindow() )
 	{
@@ -136,10 +140,10 @@ bool Application::Initialize()
 	m_pWindow->SetGLContext( SDL_GL_CreateContext( m_pWindow->GetWindow().get() ) );
 
 	// Initialize Glad
-	if ( gladLoadGLLoader( SDL_GL_GetProcAddress ) == 0 )
+	if ( !gladLoadGLLoader( (GLADloadproc)SDL_GL_GetProcAddress ) )
 	{
-		SCION_ERROR( "Failed to Initialize Glad" );
-		return false;
+		SCION_ERROR( "Failed to initialize GLAD" );
+		return 1;
 	}
 
 	if ( !m_pWindow->GetGLContext() )
@@ -149,7 +153,7 @@ bool Application::Initialize()
 		return false;
 	}
 
-	if ( ( SDL_GL_MakeCurrent( m_pWindow->GetWindow().get(), m_pWindow->GetGLContext() ) ) != 0 )
+	if ( !SDL_GL_MakeCurrent( m_pWindow->GetWindow().get(), m_pWindow->GetGLContext() ) )
 	{
 		std::string error = SDL_GetError();
 		SCION_ERROR( "Failed to make OpenGL context current: {0}", error );
@@ -166,6 +170,12 @@ bool Application::Initialize()
 	Scion::Rendering::OpenGLDebugger::breakOnWarning( false );
 	Scion::Rendering::OpenGLDebugger::setSeverityLevel( Scion::Rendering::OpenGLDebuggerSeverity::Medium );
 #endif
+
+	// Initialize the mixer. Right now we only use SDL3_mixer, I may adjust to use other types in the future
+	if ( !MIX_Init() )
+	{
+		SCION_ERROR( "MIX_Init failed: {}", SDL_GetError() );
+	}
 
 	auto& mainRegistry = MAIN_REGISTRY();
 	if ( !mainRegistry.Initialize( true ) )
@@ -492,27 +502,27 @@ void Application::ProcessEvents()
 	{
 		switch ( m_Event.type )
 		{
-		case SDL_QUIT: m_bIsRunning = false; break;
-		case SDL_KEYDOWN:
-			keyboard.OnKeyPressed( m_Event.key.keysym.sym );
+		case SDL_EVENT_QUIT: m_bIsRunning = false; break;
+		case SDL_EVENT_KEY_DOWN:
+			keyboard.OnKeyPressed( m_Event.key.key );
 			EVENT_DISPATCHER().EmitEvent( Scion::Core::Events::KeyEvent{
-				.key = m_Event.key.keysym.sym, .eType = Scion::Core::Events::EKeyEventType::Pressed } );
+				.key = static_cast<int>( m_Event.key.key ), .eType = Scion::Core::Events::EKeyEventType::Pressed } );
 			break;
-		case SDL_KEYUP:
-			keyboard.OnKeyReleased( m_Event.key.keysym.sym );
+		case SDL_EVENT_KEY_UP:
+			keyboard.OnKeyReleased( m_Event.key.key );
 			EVENT_DISPATCHER().EmitEvent( Scion::Core::Events::KeyEvent{
-				.key = m_Event.key.keysym.sym, .eType = Scion::Core::Events::EKeyEventType::Released } );
+				.key = static_cast<int>( m_Event.key.key ), .eType = Scion::Core::Events::EKeyEventType::Released } );
 			break;
-		case SDL_MOUSEBUTTONDOWN: mouse.OnBtnPressed( m_Event.button.button ); break;
-		case SDL_MOUSEBUTTONUP: mouse.OnBtnReleased( m_Event.button.button ); break;
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN: mouse.OnBtnPressed( m_Event.button.button ); break;
+		case SDL_EVENT_MOUSE_BUTTON_UP: mouse.OnBtnReleased( m_Event.button.button ); break;
+		case SDL_EVENT_MOUSE_WHEEL:
 			mouse.SetMouseWheelX( m_Event.wheel.x );
 			mouse.SetMouseWheelY( m_Event.wheel.y );
 			break;
-		case SDL_MOUSEMOTION: mouse.SetMouseMoving( true ); break;
-		case SDL_CONTROLLERBUTTONDOWN: inputManager.GamepadBtnPressed( m_Event ); break;
-		case SDL_CONTROLLERBUTTONUP: inputManager.GamepadBtnReleased( m_Event ); break;
-		case SDL_CONTROLLERDEVICEADDED: {
+		case SDL_EVENT_MOUSE_MOTION: mouse.SetMouseMoving( true ); break;
+		case SDL_EVENT_GAMEPAD_BUTTON_DOWN: inputManager.GamepadBtnPressed( m_Event ); break;
+		case SDL_EVENT_GAMEPAD_BUTTON_UP: inputManager.GamepadBtnReleased( m_Event ); break;
+		case SDL_EVENT_GAMEPAD_ADDED: {
 			int index = inputManager.AddGamepad( m_Event.jdevice.which );
 			if ( index > 0 )
 			{
@@ -522,7 +532,7 @@ void Application::ProcessEvents()
 
 			break;
 		}
-		case SDL_CONTROLLERDEVICEREMOVED: {
+		case SDL_EVENT_GAMEPAD_REMOVED: {
 			int index = inputManager.RemoveGamepad( m_Event.jdevice.which );
 
 			if ( index > 0 )
@@ -533,26 +543,20 @@ void Application::ProcessEvents()
 
 			break;
 		}
-		case SDL_JOYAXISMOTION: inputManager.GamepadAxisValues( m_Event ); break;
-		case SDL_JOYHATMOTION: inputManager.GamepadHatValues( m_Event ); break;
-		case SDL_WINDOWEVENT: {
-			switch ( m_Event.window.event )
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION: inputManager.GamepadAxisValues( m_Event ); break;
+		case SDL_EVENT_JOYSTICK_HAT_MOTION: inputManager.GamepadHatValues( m_Event ); break;
+		case SDL_EVENT_WINDOW_RESIZED: {
+			// We only care to control the application window.
+			// ImGui handles all separate child windows separately.
+			if ( SDL_GetWindowID( m_pWindow->GetWindow().get() ) == m_Event.window.windowID )
 			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				// We only care to control the application window.
-				// ImGui handles all separate child windows separately.
-				if ( SDL_GetWindowID( m_pWindow->GetWindow().get() ) == m_Event.window.windowID )
-				{
-					m_pWindow->SetSize( m_Event.window.data1, m_Event.window.data2 );
-				}
-				break;
-			default: break;
+				m_pWindow->SetSize( m_Event.window.data1, m_Event.window.data2 );
 			}
 			break;
 		}
-		case SDL_DROPFILE: {
+		case SDL_EVENT_DROP_FILE: {
 			EVENT_DISPATCHER().EmitEvent( Scion::Editor::Events::FileEvent{
-				.eAction = Events::EFileAction::FileDropped, .sFilepath = std::string{ m_Event.drop.file } } );
+				.eAction = Events::EFileAction::FileDropped, .sFilepath = std::string{ m_Event.drop.data } } );
 
 			break;
 		}
@@ -560,7 +564,7 @@ void Application::ProcessEvents()
 		}
 
 		// Process ImGui events after other events
-		ImGui_ImplSDL2_ProcessEvent( &m_Event );
+		ImGui_ImplSDL3_ProcessEvent( &m_Event );
 	}
 }
 
@@ -605,7 +609,10 @@ void Application::CleanUp()
 	auto& pEditorState = MAIN_REGISTRY().GetContext<EditorStatePtr>();
 	pEditorState->Save( *pProjectInfo );
 
-	SDL_GL_DeleteContext( m_pWindow->GetGLContext() );
+	// Cleanup the registry before we shutdown sdl
+	MAIN_REGISTRY().CleanUp();
+
+	SDL_GL_DestroyContext( m_pWindow->GetGLContext() );
 	SDL_DestroyWindow( m_pWindow->GetWindow().get() );
 
 	SDL_Quit();

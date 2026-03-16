@@ -65,7 +65,7 @@ end
 
 --- @brief Called when entering the Game Over state
 function GameOverState:OnEnter()
-	Music.play("game_over")
+	AudioPlayer.playTrack(0, "game_over", -1)
 	
 	-- Disable asteroid spawning
 	gAsteroidHandler:Disable()
@@ -84,7 +84,7 @@ function GameOverState:OnExit()
 	self.hud:Reset()
 	gShipHandler:ResetAllShips()
 	
-	Music.play("space")
+	AudioPlayer.playTrack(0, "space", -1)
 end
 
 --- @brief Updates the Game Over state each frame
@@ -134,7 +134,7 @@ function GameOverState:UpdateScreenAnim()
 		-- Break screen effect and reveal "Game Over" text
 		self.bBrokenScreen = true 
 		self.hud:ShowDamage(true)
-		Sound.play("crack_screen")
+		AudioPlayer.playTrack(-1, "crack_screen")
 		local gameOverSprite = self.gameOverLabel:getComponent(Sprite)
 		gameOverSprite.bHidden = false
 	end

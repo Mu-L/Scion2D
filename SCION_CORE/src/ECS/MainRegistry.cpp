@@ -1,8 +1,6 @@
 #include "Core/ECS/MainRegistry.h"
 #include "Core/Resources/AssetManager.h"
 #include <Logger/Logger.h>
-#include <Sounds/MusicPlayer/MusicPlayer.h>
-#include <Sounds/SoundPlayer/SoundFxPlayer.h>
 #include <Core/Systems/ScriptingSystem.h>
 #include <Core/Systems/RenderSystem.h>
 #include <Core/Systems/RenderUISystem.h>
@@ -12,6 +10,8 @@
 #include <Core/Events/EventDispatcher.h>
 #include <Rendering/Core/Renderer.h>
 #include <ScionUtilities/HelperUtilities.h>
+
+#include <Sounds/AudioPlayer/AudioPlayer.hpp>
 
 // Systems not needed outside of the editor
 #ifdef IN_SCION_EDITOR
@@ -36,11 +36,14 @@ bool MainRegistry::Initialize( bool bEnableFilewatcher )
 	auto pAssetManager = std::make_shared<SCION_RESOURCES::AssetManager>( bEnableFilewatcher );
 	m_pMainRegistry->AddToContext<std::shared_ptr<SCION_RESOURCES::AssetManager>>( std::move( pAssetManager ) );
 
-	auto pMusicPlayer = std::make_shared<Scion::Sounds::MusicPlayer>();
-	m_pMainRegistry->AddToContext<std::shared_ptr<Scion::Sounds::MusicPlayer>>( std::move( pMusicPlayer ) );
+	SDL_AudioSpec spec;
+	SDL_zero( spec );
+	spec.freq = 44100;
+	spec.format = SDL_AUDIO_F32;
+	spec.channels = 2;
 
-	auto pSoundPlayer = std::make_shared<Scion::Sounds::SoundFxPlayer>();
-	m_pMainRegistry->AddToContext<std::shared_ptr<Scion::Sounds::SoundFxPlayer>>( std::move( pSoundPlayer ) );
+	m_pMainRegistry->AddToContext<std::shared_ptr<Scion::Sounds::AudioPlayer>>(
+		std::make_shared<Scion::Sounds::AudioPlayer>( 32, spec ) );
 
 	auto renderer = std::make_shared<Scion::Rendering::Renderer>();
 
@@ -136,16 +139,10 @@ SCION_RESOURCES::AssetManager& MainRegistry::GetAssetManager()
 	return *m_pMainRegistry->GetContext<std::shared_ptr<SCION_RESOURCES::AssetManager>>();
 }
 
-Scion::Sounds::MusicPlayer& MainRegistry::GetMusicPlayer()
+Scion::Sounds::AudioPlayer& MainRegistry::GetAudioPlayer()
 {
 	SCION_ASSERT( m_bInitialized && "Main Registry must be initialized before use." );
-	return *m_pMainRegistry->GetContext<std::shared_ptr<Scion::Sounds::MusicPlayer>>();
-}
-
-Scion::Sounds::SoundFxPlayer& MainRegistry::GetSoundPlayer()
-{
-	SCION_ASSERT( m_bInitialized && "Main Registry must be initialized before use." );
-	return *m_pMainRegistry->GetContext<std::shared_ptr<Scion::Sounds::SoundFxPlayer>>();
+	return *m_pMainRegistry->GetContext<std::shared_ptr<Scion::Sounds::AudioPlayer>>();
 }
 
 Scion::Rendering::Renderer& MainRegistry::GetRenderer()
@@ -190,6 +187,12 @@ Registry* MainRegistry::GetRegistry()
 		m_pMainRegistry = std::make_unique<Registry>();
 
 	return m_pMainRegistry.get();
+}
+
+bool MainRegistry::CleanUp()
+{
+	m_pMainRegistry.reset( nullptr );
+	return m_pMainRegistry == nullptr;
 }
 
 

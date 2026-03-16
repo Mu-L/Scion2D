@@ -12,9 +12,9 @@ class AssetManager;
 }
 namespace Scion::Sounds
 {
-class MusicPlayer;
-class SoundFxPlayer;
+class AudioPlayer;
 } // namespace Scion::Sounds
+
 
 namespace Scion::Core::Events
 {
@@ -45,8 +45,7 @@ class MainRegistry
 
 	Scion::Core::Events::EventDispatcher& GetEventDispatcher();
 	SCION_RESOURCES::AssetManager& GetAssetManager();
-	Scion::Sounds::MusicPlayer& GetMusicPlayer();
-	Scion::Sounds::SoundFxPlayer& GetSoundPlayer();
+	Scion::Sounds::AudioPlayer& GetAudioPlayer();
 	Scion::Rendering::Renderer& GetRenderer();
 
 	template <typename TContext>
@@ -67,6 +66,8 @@ class MainRegistry
 	Scion::Core::Systems::AnimationSystem& GetAnimationSystem();
 	Scion::Core::Systems::PhysicsSystem& GetPhysicsSystem();
 	Registry* GetRegistry();
+
+	bool CleanUp();
 
   private:
 	MainRegistry() = default;

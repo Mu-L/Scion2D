@@ -227,7 +227,7 @@ void TextBatchRenderer::Render()
 	DisableVAO();
 }
 
-void TextBatchRenderer::AddText( const std::string& text, const std::shared_ptr<Font>& font, const glm::vec2& position,
+void TextBatchRenderer::AddText( const std::string& text, Font* font, const glm::vec2& position,
 								 int padding, float wrap, Color color, glm::mat4 model )
 {
 	if ( !font )

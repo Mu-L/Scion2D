@@ -18,8 +18,6 @@
 #include "Core/Scripting/CrashLoggerTestBindings.h"
 #include "Core/Scripting/ScriptingUtilities.h"
 
-#include "Sounds/MusicPlayer/MusicPlayer.h"
-#include "Sounds/SoundPlayer/SoundFxPlayer.h"
 #include "Physics/Box2DWrappers.h"
 #include "Physics/ContactListener.h"
 #include "Core/Resources/AssetManager.h"
@@ -34,6 +32,8 @@
 #include "editor/scene/SceneObject.h"
 
 #include "editor/scripting/EditorCoreLuaWrappers.h"
+
+#include "Sounds/AudioPlayer/AudioPlayer.hpp"
 
 #include "Core/Events/EventDispatcher.h"
 #include "Core/Events/EngineEventTypes.h"
@@ -210,8 +210,7 @@ void SceneDisplay::UnloadScene()
 	runtimeRegistry.RemoveContext<std::shared_ptr<sol::state>>();
 
 	auto& mainRegistry = MAIN_REGISTRY();
-	mainRegistry.GetMusicPlayer().Stop();
-	mainRegistry.GetSoundPlayer().Stop( -1 );
+	mainRegistry.GetAudioPlayer().StopAllTracks();
 }
 
 void SceneDisplay::RenderScene() const

@@ -10,13 +10,14 @@
 #include <Rendering/Essentials/Shader.h>
 #include <Rendering/Essentials/Texture.h>
 #include <Rendering/Essentials/Font.h>
-#include <Sounds/Essentials/Music.h>
-#include <Sounds/Essentials/SoundFX.h>
+
+#include <Sounds/Essentials/Audio.hpp>
+#include <Sounds/AudioPlayer/AudioPlayer.hpp>
 
 #include <ScionUtilities/ScionUtilities.h>
 #include <ScionUtilities/SDL_Wrappers.h>
 #include <Logger/Logger.h>
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -32,7 +33,6 @@ AssetManager::AssetManager( bool bEnableFilewatcher )
 	}
 
 #ifdef IN_SCION_EDITOR
-	IMG_Init( IMG_INIT_PNG );
 	m_mapCursors.emplace( "default", MakeSharedFromSDLType<Cursor>( SDL_GetDefaultCursor() ) );
 #endif
 }
@@ -76,9 +76,9 @@ bool AssetManager::AddTexture( const std::string& textureName, const std::string
 	}
 
 	auto pTexture = Scion::Rendering::TextureLoader::Create( pixelArt ? Scion::Rendering::Texture::TextureType::PIXEL
-																	 : Scion::Rendering::Texture::TextureType::BLENDED,
-															texturePath,
-															bTileset );
+																	  : Scion::Rendering::Texture::TextureType::BLENDED,
+															 texturePath,
+															 bTileset );
 
 	if ( !pTexture )
 	{
@@ -94,8 +94,8 @@ bool AssetManager::AddTexture( const std::string& textureName, const std::string
 
 		fs::path path{ texturePath };
 		auto lastWrite = fs::last_write_time( path );
-		if ( Scion::Utilities::CheckContainsValue( m_FilewatchParams,
-											 [ & ]( const auto& params ) { return params.sFilepath == texturePath; } ) )
+		if ( Scion::Utilities::CheckContainsValue(
+				 m_FilewatchParams, [ & ]( const auto& params ) { return params.sFilepath == texturePath; } ) )
 		{
 			m_FilewatchParams.emplace_back( AssetWatchParams{ .sAssetName = textureName,
 															  .sFilepath = texturePath,
@@ -132,7 +132,7 @@ bool AssetManager::AddTextureFromMemory( const std::string& textureName, const u
 	return bSuccess;
 }
 
-std::shared_ptr<Scion::Rendering::Texture> AssetManager::GetTexture( const std::string& textureName )
+Scion::Rendering::Texture* AssetManager::GetTexture( const std::string& textureName )
 {
 	auto texItr = m_mapTextures.find( textureName );
 	if ( texItr == m_mapTextures.end() )
@@ -141,7 +141,7 @@ std::shared_ptr<Scion::Rendering::Texture> AssetManager::GetTexture( const std::
 		return nullptr;
 	}
 
-	return texItr->second;
+	return texItr->second.get();
 }
 
 std::vector<std::string> AssetManager::GetTilesetNames() const
@@ -173,8 +173,8 @@ bool AssetManager::AddFont( const std::string& fontName, const std::string& font
 
 		fs::path path{ fontPath };
 		auto lastWrite = fs::last_write_time( path );
-		if ( Scion::Utilities::CheckContainsValue( m_FilewatchParams,
-											 [ & ]( const auto& params ) { return params.sFilepath == fontPath; } ) )
+		if ( Scion::Utilities::CheckContainsValue(
+				 m_FilewatchParams, [ & ]( const auto& params ) { return params.sFilepath == fontPath; } ) )
 		{
 			m_FilewatchParams.emplace_back( AssetWatchParams{ .sAssetName = fontName,
 															  .sFilepath = fontPath,
@@ -208,7 +208,7 @@ bool AssetManager::AddFontFromMemory( const std::string& fontName, unsigned char
 	return bSuccess;
 }
 
-std::shared_ptr<Scion::Rendering::Font> AssetManager::GetFont( const std::string& fontName )
+Scion::Rendering::Font* AssetManager::GetFont( const std::string& fontName )
 {
 	auto fontItr = m_mapFonts.find( fontName );
 	if ( fontItr == m_mapFonts.end() )
@@ -217,7 +217,7 @@ std::shared_ptr<Scion::Rendering::Font> AssetManager::GetFont( const std::string
 		return nullptr;
 	}
 
-	return fontItr->second;
+	return fontItr->second.get();
 }
 
 bool AssetManager::AddShader( const std::string& shaderName, const std::string& vertexPath,
@@ -250,8 +250,8 @@ bool AssetManager::AddShader( const std::string& shaderName, const std::string& 
 
 		fs::path pathVert{ vertexPath };
 		auto lastWriteVert = fs::last_write_time( pathVert );
-		if ( Scion::Utilities::CheckContainsValue( m_FilewatchParams,
-											 [ & ]( const auto& params ) { return params.sFilepath == vertexPath; } ) )
+		if ( Scion::Utilities::CheckContainsValue(
+				 m_FilewatchParams, [ & ]( const auto& params ) { return params.sFilepath == vertexPath; } ) )
 		{
 			m_FilewatchParams.emplace_back( AssetWatchParams{ .sAssetName = shaderName + "_vert",
 															  .sFilepath = vertexPath,
@@ -283,12 +283,12 @@ bool AssetManager::AddShaderFromMemory( const std::string& shaderName, const cha
 	}
 
 	auto pShader = Scion::Rendering::ShaderLoader::CreateFromMemory( vertexShader, fragShader );
-	auto [ itr, bSuccess ] = m_mapShader.insert( std::make_pair( shaderName, std::move( pShader ) ) );
+	auto [ itr, bSuccess ] = m_mapShader.emplace( shaderName, std::move( pShader ) );
 
 	return bSuccess;
 }
 
-std::shared_ptr<Scion::Rendering::Shader> AssetManager::GetShader( const std::string& shaderName )
+Scion::Rendering::Shader* AssetManager::GetShader( const std::string& shaderName )
 {
 	auto shaderItr = m_mapShader.find( shaderName );
 	if ( shaderItr == m_mapShader.end() )
@@ -297,217 +297,66 @@ std::shared_ptr<Scion::Rendering::Shader> AssetManager::GetShader( const std::st
 		return nullptr;
 	}
 
-	return shaderItr->second;
+	return shaderItr->second.get();
 }
 
-bool AssetManager::AddMusic( const std::string& musicName, const std::string& filepath )
+bool AssetManager::AddAudio( const std::string& audioName, const std::string& filepath, Scion::Sounds::AudioType eType )
 {
-	if ( m_mapMusic.contains( musicName ) )
+	// Check to see if the shader already exists
+	if ( m_mapAudio.contains( audioName ) )
 	{
-		SCION_ERROR( "Failed to add music [{}] -- Already exists!", musicName );
+		SCION_ERROR( "Failed to add Audio [{0}] -- Already Exists!", audioName );
 		return false;
 	}
 
-	Mix_Music* pMusic = Mix_LoadMUS( filepath.c_str() );
-
-	if ( !pMusic )
+	MIX_Audio* pAudio = MIX_LoadAudio( nullptr, filepath.c_str(), false );
+	if ( !pAudio )
 	{
-		std::string error{ Mix_GetError() };
-		SCION_ERROR( "Failed to load [{}] at path [{}] -- Mixer Error: {}", musicName, filepath, error );
+		SCION_ERROR( "Failed to add audio. [{}]. Error: {}", audioName, SDL_GetError() );
 		return false;
 	}
 
-	// Create the sound parameters
-	Scion::Sounds::SoundParams params{
-		.name = musicName, .filename = filepath, .duration = Mix_MusicDuration( pMusic ) };
-
-	// Create the music Pointer
-	auto pMusicPtr = std::make_shared<Scion::Sounds::Music>( params, MusicPtr{ pMusic } );
-	if ( !pMusicPtr )
-	{
-		SCION_ERROR( "Failed to create the music ptr for [{}]", musicName );
-		return false;
-	}
-
-	auto [ itr, bSuccess ] = m_mapMusic.emplace( musicName, std::move( pMusicPtr ) );
-
-	if ( m_bFileWatcherRunning && bSuccess )
-	{
-		std::lock_guard lock{ m_AssetMutex };
-
-		fs::path path{ filepath };
-		auto lastWrite = fs::last_write_time( path );
-		if ( Scion::Utilities::CheckContainsValue( m_FilewatchParams,
-											 [ & ]( const auto& params ) { return params.sFilepath == filepath; } ) )
-		{
-			m_FilewatchParams.emplace_back( AssetWatchParams{ .sAssetName = musicName,
-															  .sFilepath = filepath,
-															  .lastWrite = lastWrite,
-															  .eType = Scion::Utilities::AssetType::MUSIC } );
-		}
-	}
-
-	return bSuccess;
+	return m_mapAudio.emplace( audioName, std::make_unique<Scion::Sounds::Audio>( pAudio, eType, filepath ) ).second;
 }
 
-bool AssetManager::AddMusicFromMemory( const std::string& musicName, const unsigned char* musicData, size_t dataSize )
+bool AssetManager::AddAudioFromMemory( const std::string& audioName, const unsigned char* audioData, size_t dataSize,
+									   Scion::Sounds::AudioType eType )
 {
-	if ( m_mapMusic.contains( musicName ) )
+	// Check to see if the shader already exists
+	if ( m_mapAudio.contains( audioName ) )
 	{
-		SCION_ERROR( "Failed to add music [{}] -- Already exists!", musicName );
+		SCION_ERROR( "Failed to add Audio [{0}] -- Already Exists!", audioName );
 		return false;
 	}
 
-	SDL_RWops* rw = SDL_RWFromMem( (void*)musicData, static_cast<int>( dataSize ) );
-	Mix_MusicType type = DetectAudioFormat( musicData, dataSize );
-
-	if ( type == MUS_NONE )
+	SDL_IOStream* pStream = SDL_IOFromConstMem( audioData, dataSize );
+	if ( !pStream )
 	{
-		SCION_ERROR( "Failed to add music [{}] from memory. Unable to determine music type.", musicName );
+		SCION_ERROR( "Failed to add Audio from data. [{}]", SDL_GetError() );
 		return false;
 	}
 
-	auto pMusic = Mix_LoadMUSType_RW( rw, type, 1 );
-	if ( !pMusic )
+	MIX_Audio* pAudio = MIX_LoadAudio_IO( nullptr, pStream, false, true );
+	if ( !pAudio )
 	{
-		SCION_ERROR( "Failed to add music [{}] from memory.", musicName );
+		SCION_ERROR( "Failed to add audio from memory. [{}]. Error: {}", audioName, SDL_GetError() );
 		return false;
 	}
 
-	// Create the sound parameters
-	Scion::Sounds::SoundParams params{
-		.name = musicName, .filename = "From Data", .duration = Mix_MusicDuration( pMusic ) };
-
-	// Create the music Pointer
-	auto pMusicPtr = std::make_shared<Scion::Sounds::Music>( params, MusicPtr{ pMusic } );
-	if ( !pMusicPtr )
-	{
-		SCION_ERROR( "Failed to create the music ptr for [{}]", musicName );
-		return false;
-	}
-
-	auto [ itr, bSuccess ] = m_mapMusic.emplace( musicName, std::move( pMusicPtr ) );
-
-	return bSuccess;
+	return m_mapAudio.emplace( audioName, std::make_unique<Scion::Sounds::Audio>( pAudio, eType, "From Memory" ) )
+		.second;
 }
 
-std::shared_ptr<Scion::Sounds::Music> AssetManager::GetMusic( const std::string& musicName )
+Scion::Sounds::Audio* AssetManager::GetAudio( const std::string& audioName )
 {
-	auto musicItr = m_mapMusic.find( musicName );
-	if ( musicItr == m_mapMusic.end() )
+	auto audioItr = m_mapAudio.find( audioName );
+	if ( audioItr == m_mapAudio.end() )
 	{
-		SCION_ERROR( "Failed to get [{}] -- Does not exist!", musicName );
+		SCION_ERROR( "Failed to get audio [{0}] -- Does not exist!", audioName );
 		return nullptr;
 	}
 
-	return musicItr->second;
-}
-
-Mix_MusicType AssetManager::DetectAudioFormat( const unsigned char* audioData, size_t dataSize )
-{
-	if ( !audioData || dataSize < 12 )
-	{
-		SCION_ERROR( "Failed to detect the audio format. Data or size is invalid." );
-		return MUS_NONE;
-	}
-
-	// WAV Format
-	if ( std::memcmp( audioData, "RIFF", 4 ) == 0 && std::memcmp( audioData + 8, "WAVE", 4 ) == 0 )
-	{
-		return MUS_WAV;
-	}
-
-	// MP3 Format
-	if ( std::memcmp( audioData, "ID3", 3 ) == 0 || audioData[ 0 ] == 0xFF && ( audioData[ 1 ] & 0xE0 ) == 0xE0 )
-	{
-		return MUS_MP3;
-	}
-
-	// OGG Format
-	if ( std::memcmp( audioData, "OggS", 4 ) == 0 )
-	{
-		return MUS_OGG;
-	}
-
-	// Flac Format
-	if ( std::memcmp( audioData, "fLaC", 4 ) == 0 )
-	{
-		return MUS_FLAC;
-	}
-
-	if ( dataSize >= 36 && std::memcmp( audioData + 28, "OpusHead", 8 ) == 0 )
-	{
-		return MUS_OPUS;
-	}
-
-	SCION_ERROR( "Failed to detect audio type - Unknown or unsupported format." );
-
-	return MUS_NONE;
-}
-
-bool AssetManager::AddSoundFx( const std::string& soundFxName, const std::string& filepath )
-{
-	if ( m_mapSoundFx.contains( soundFxName ) )
-	{
-		SCION_ERROR( "Failed to add soundfx [{}] -- Already exists!", soundFxName );
-		return false;
-	}
-
-	Mix_Chunk* pChunk = Mix_LoadWAV( filepath.c_str() );
-
-	if ( !pChunk )
-	{
-		std::string error{ Mix_GetError() };
-		SCION_ERROR( "Failed to load [{}] at path [{}] -- Error: {}", soundFxName, filepath, error );
-		return false;
-	}
-
-	Scion::Sounds::SoundParams params{ .name = soundFxName, .filename = filepath, .duration = pChunk->alen / 179.4 };
-
-	auto pSoundFx = std::make_shared<Scion::Sounds::SoundFX>( params, SoundFxPtr{ pChunk } );
-	auto [ itr, bSuccess ] = m_mapSoundFx.emplace( soundFxName, std::move( pSoundFx ) );
-
-	if ( bSuccess )
-	{
-		std::lock_guard lock{ m_AssetMutex };
-		fs::path path{ filepath };
-		auto lastWrite = fs::last_write_time( path );
-		if ( Scion::Utilities::CheckContainsValue( m_FilewatchParams,
-											 [ & ]( const auto& params ) { return params.sFilepath == filepath; } ) )
-		{
-			m_FilewatchParams.emplace_back( AssetWatchParams{ .sAssetName = soundFxName,
-															  .sFilepath = filepath,
-															  .lastWrite = lastWrite,
-															  .eType = Scion::Utilities::AssetType::SOUNDFX } );
-		}
-	}
-
-	return bSuccess;
-}
-
-bool AssetManager::AddSoundFxFromMemory( const std::string& soundFxName, const unsigned char* soundFxData,
-										 size_t dataSize )
-{
-	if ( m_mapSoundFx.contains( soundFxName ) )
-	{
-		SCION_ERROR( "Failed to add soundfx [{}] -- Already exists!", soundFxName );
-		return false;
-	}
-
-	SDL_RWops* rw = SDL_RWFromMem( (void*)soundFxData, static_cast<int>( dataSize ) );
-	auto pChunk = Mix_LoadWAV_RW( rw, 1 );
-	if ( !pChunk )
-	{
-		SCION_ERROR( "Failed to add soundfx [{}] from memory.", soundFxName );
-		return false;
-	}
-
-	Scion::Sounds::SoundParams params{ .name = soundFxName, .filename = "From Data", .duration = pChunk->alen / 179.4 };
-
-	auto pSoundFx = std::make_shared<Scion::Sounds::SoundFX>( params, SoundFxPtr{ pChunk } );
-	auto [ itr, bSuccess ] = m_mapSoundFx.emplace( soundFxName, std::move( pSoundFx ) );
-
-	return bSuccess;
+	return audioItr->second.get();
 }
 
 std::string AssetManager::GetAssetFilepath( const std::string& sAssetName, Scion::Utilities::AssetType eAssetType )
@@ -522,13 +371,10 @@ std::string AssetManager::GetAssetFilepath( const std::string& sAssetName, Scion
 		auto itr = m_mapFonts.find( sAssetName );
 		return itr != m_mapFonts.end() ? itr->second->GetFilename() : std::string{};
 	}
+	case Scion::Utilities::AssetType::MUSIC:
 	case Scion::Utilities::AssetType::SOUNDFX: {
-		auto itr = m_mapSoundFx.find( sAssetName );
-		return itr != m_mapSoundFx.end() ? itr->second->GetFilename() : std::string{};
-	}
-	case Scion::Utilities::AssetType::MUSIC: {
-		auto itr = m_mapMusic.find( sAssetName );
-		return itr != m_mapMusic.end() ? itr->second->GetFilename() : std::string{};
+		auto itr = m_mapAudio.find( sAssetName );
+		return itr != m_mapAudio.end() ? itr->second->GetFilename() : std::string{};
 	}
 	case Scion::Utilities::AssetType::PREFAB: {
 		auto itr = m_mapPrefabs.find( sAssetName );
@@ -539,19 +385,7 @@ std::string AssetManager::GetAssetFilepath( const std::string& sAssetName, Scion
 	return {};
 }
 
-std::shared_ptr<Scion::Sounds::SoundFX> AssetManager::GetSoundFx( const std::string& soundFxName )
-{
-	auto soundItr = m_mapSoundFx.find( soundFxName );
-	if ( soundItr == m_mapSoundFx.end() )
-	{
-		SCION_ERROR( "Failed to get SoundFX [{}] -- Does Not exist!", soundFxName );
-		return nullptr;
-	}
-
-	return soundItr->second;
-}
-
-bool AssetManager::AddPrefab( const std::string& sPrefabName, std::shared_ptr<Scion::Core::Prefab> pPrefab )
+bool AssetManager::AddPrefab( const std::string& sPrefabName, std::unique_ptr<Scion::Core::Prefab> pPrefab )
 {
 	if ( m_mapPrefabs.contains( sPrefabName ) )
 	{
@@ -563,7 +397,7 @@ bool AssetManager::AddPrefab( const std::string& sPrefabName, std::shared_ptr<Sc
 	return bSuccess;
 }
 
-std::shared_ptr<Scion::Core::Prefab> AssetManager::GetPrefab( const std::string& sPrefabName )
+Scion::Core::Prefab* AssetManager::GetPrefab( const std::string& sPrefabName )
 {
 	auto prefabItr = m_mapPrefabs.find( sPrefabName );
 	if ( prefabItr == m_mapPrefabs.end() )
@@ -572,7 +406,7 @@ std::shared_ptr<Scion::Core::Prefab> AssetManager::GetPrefab( const std::string&
 		return nullptr;
 	}
 
-	return prefabItr->second;
+	return prefabItr->second.get();
 }
 
 #ifdef IN_SCION_EDITOR
@@ -590,17 +424,17 @@ bool AssetManager::AddCursorFromMemory( const std::string& sCursorName, unsigned
 		return false;
 	}
 
-	SDL_RWops* rw = SDL_RWFromConstMem( cursorData, static_cast<int>( dataSize ) );
-	if ( !rw )
+	SDL_IOStream* stream = SDL_IOFromConstMem( cursorData, dataSize );
+	if ( !stream )
 	{
 		SCION_ERROR( "Failed to add cursor. [{}]", SDL_GetError() );
 		return false;
 	}
 
-	SDL_Surface* pSurface = IMG_Load_RW( rw, 1 ); // 1 = Automatically closes RWops
+	SDL_Surface* pSurface = SDL_LoadPNG_IO( stream, true );
 	if ( !pSurface )
 	{
-		SCION_ERROR( "Failed to add cursor. [{}]", IMG_GetError() );
+		SCION_ERROR( "Failed to add cursor. [{}]", SDL_GetError() );
 		return false;
 	}
 
@@ -612,7 +446,7 @@ bool AssetManager::AddCursorFromMemory( const std::string& sCursorName, unsigned
 		return false;
 	}
 
-	SDL_FreeSurface( pSurface );
+	SDL_DestroySurface( pSurface );
 
 	return m_mapCursors.emplace( sCursorName, MakeSharedFromSDLType<Cursor>( pCursor ) ).second;
 }
@@ -636,10 +470,16 @@ std::vector<std::string> AssetManager::GetAssetKeyNames( Scion::Utilities::Asset
 	switch ( eAssetType )
 	{
 	case Scion::Utilities::AssetType::TEXTURE:
-		return Scion::Utilities::GetKeys( m_mapTextures, []( const auto& pair ) { return !pair.second->IsEditorTexture(); } );
+		return Scion::Utilities::GetKeys( m_mapTextures,
+										  []( const auto& pair ) { return !pair.second->IsEditorTexture(); } );
 	case Scion::Utilities::AssetType::FONT: return Scion::Utilities::GetKeys( m_mapFonts );
-	case Scion::Utilities::AssetType::SOUNDFX: return Scion::Utilities::GetKeys( m_mapSoundFx );
-	case Scion::Utilities::AssetType::MUSIC: return Scion::Utilities::GetKeys( m_mapMusic );
+	case Scion::Utilities::AssetType::MUSIC:
+		return Scion::Utilities::GetKeys(
+			m_mapAudio, []( const auto& pair ) { return pair.second->GetType() == Scion::Sounds::AudioType::Music; } );
+	case Scion::Utilities::AssetType::SOUNDFX:
+		return Scion::Utilities::GetKeys( m_mapAudio, []( const auto& pair ) {
+			return pair.second->GetType() == Scion::Sounds::AudioType::Soundfx;
+		} );
 	case Scion::Utilities::AssetType::PREFAB: return Scion::Utilities::GetKeys( m_mapPrefabs );
 	default: SCION_ASSERT( false && "Cannot get this type!" );
 	}
@@ -654,10 +494,16 @@ bool AssetManager::ChangeAssetName( const std::string& sOldName, const std::stri
 
 	switch ( eAssetType )
 	{
-	case Scion::Utilities::AssetType::TEXTURE: bSuccess = Scion::Utilities::KeyChange( m_mapTextures, sOldName, sNewName ); break;
-	case Scion::Utilities::AssetType::FONT: bSuccess = Scion::Utilities::KeyChange( m_mapFonts, sOldName, sNewName ); break;
-	case Scion::Utilities::AssetType::SOUNDFX: bSuccess = Scion::Utilities::KeyChange( m_mapSoundFx, sOldName, sNewName ); break;
-	case Scion::Utilities::AssetType::MUSIC: bSuccess = Scion::Utilities::KeyChange( m_mapMusic, sOldName, sNewName ); break;
+	case Scion::Utilities::AssetType::TEXTURE:
+		bSuccess = Scion::Utilities::KeyChange( m_mapTextures, sOldName, sNewName );
+		break;
+	case Scion::Utilities::AssetType::FONT:
+		bSuccess = Scion::Utilities::KeyChange( m_mapFonts, sOldName, sNewName );
+		break;
+	case Scion::Utilities::AssetType::MUSIC:
+	case Scion::Utilities::AssetType::SOUNDFX:
+		bSuccess = Scion::Utilities::KeyChange( m_mapAudio, sOldName, sNewName );
+		break;
 	default: SCION_ASSERT( false && "Cannot get this type!" ); break;
 	}
 
@@ -683,8 +529,8 @@ bool AssetManager::CheckHasAsset( const std::string& sNameCheck, Scion::Utilitie
 	{
 	case Scion::Utilities::AssetType::TEXTURE: return m_mapTextures.contains( sNameCheck );
 	case Scion::Utilities::AssetType::FONT: return m_mapFonts.contains( sNameCheck );
-	case Scion::Utilities::AssetType::SOUNDFX: return m_mapSoundFx.contains( sNameCheck );
-	case Scion::Utilities::AssetType::MUSIC: return m_mapMusic.contains( sNameCheck );
+	case Scion::Utilities::AssetType::MUSIC:
+	case Scion::Utilities::AssetType::SOUNDFX: return m_mapAudio.contains( sNameCheck );
 	case Scion::Utilities::AssetType::PREFAB: return m_mapPrefabs.contains( sNameCheck );
 	default: SCION_ASSERT( false && "Cannot get this type!" );
 	}
@@ -705,10 +551,8 @@ bool AssetManager::DeleteAsset( const std::string& sAssetName, Scion::Utilities:
 		bSuccess = std::erase_if( m_mapFonts, [ & ]( const auto& pair ) { return pair.first == sAssetName; } ) > 0;
 		break;
 	case Scion::Utilities::AssetType::SOUNDFX:
-		bSuccess = std::erase_if( m_mapSoundFx, [ & ]( const auto& pair ) { return pair.first == sAssetName; } ) > 0;
-		break;
 	case Scion::Utilities::AssetType::MUSIC:
-		bSuccess = std::erase_if( m_mapMusic, [ & ]( const auto& pair ) { return pair.first == sAssetName; } ) > 0;
+		bSuccess = std::erase_if( m_mapAudio, [ & ]( const auto& pair ) { return pair.first == sAssetName; } ) > 0;
 		break;
 	case Scion::Utilities::AssetType::PREFAB: { // Prefabs contain files that must be cleaned up
 		if ( auto pPrefab = GetPrefab( sAssetName ) )
@@ -763,22 +607,21 @@ bool AssetManager::DeleteAssetFromPath( const std::string& sAssetPath )
 		return DeleteAsset( sTextureName, Scion::Utilities::AssetType::TEXTURE );
 	}
 
-	auto musicItr = std::ranges::find_if(
-		m_mapMusic, [ & ]( const auto& pair ) { return pair.second->GetFilename() == sAssetPath; } );
+	auto audioItr = std::ranges::find_if(
+		m_mapAudio, [ & ]( const auto& pair ) { return pair.second->GetFilename() == sAssetPath; } );
 
-	if ( musicItr != m_mapMusic.end() )
+	if ( audioItr != m_mapAudio.end() )
 	{
-		std::string sMusicName{ musicItr->first };
-		return DeleteAsset( sMusicName, Scion::Utilities::AssetType::MUSIC );
-	}
+		std::string sMusicName{ audioItr->first };
 
-	auto soundItr = std::ranges::find_if(
-		m_mapSoundFx, [ & ]( const auto& pair ) { return pair.second->GetFilename() == sAssetPath; } );
-
-	if ( soundItr != m_mapSoundFx.end() )
-	{
-		std::string sSoundName{ soundItr->first };
-		return DeleteAsset( sSoundName, Scion::Utilities::AssetType::SOUNDFX );
+		if ( audioItr->second->GetType() == Scion::Sounds::AudioType::Music )
+		{
+			return DeleteAsset( sMusicName, Scion::Utilities::AssetType::MUSIC );
+		}
+		else if ( audioItr->second->GetType() == Scion::Sounds::AudioType::Soundfx )
+		{
+			return DeleteAsset( sMusicName, Scion::Utilities::AssetType::SOUNDFX );
+		}
 	}
 
 	return true;
@@ -787,7 +630,7 @@ bool AssetManager::DeleteAssetFromPath( const std::string& sAssetPath )
 void AssetManager::CreateLuaAssetManager( sol::state& lua )
 {
 	auto& mainRegistry = MAIN_REGISTRY();
-	auto& asset_manager = mainRegistry.GetAssetManager();
+	auto& assetManager = mainRegistry.GetAssetManager();
 
 	lua.new_usertype<AssetManager>(
 		"AssetManager",
@@ -795,22 +638,18 @@ void AssetManager::CreateLuaAssetManager( sol::state& lua )
 		"addTexture",
 		sol::overload(
 			[ & ]( const std::string& assetName, const std::string& filepath, bool pixel_art ) {
-				return asset_manager.AddTexture( assetName, filepath, pixel_art, false );
+				return assetManager.AddTexture( assetName, filepath, pixel_art, false );
 			},
 			[ & ]( const std::string& assetName, const std::string& filepath, bool pixel_art, bool bTileset ) {
-				return asset_manager.AddTexture( assetName, filepath, pixel_art, bTileset );
+				return assetManager.AddTexture( assetName, filepath, pixel_art, bTileset );
 			} ),
-		"addMusic",
-		[ & ]( const std::string& musicName, const std::string& filepath ) {
-			return asset_manager.AddMusic( musicName, filepath );
-		},
-		"addSoundfx",
-		[ & ]( const std::string& soundFxName, const std::string& filepath ) {
-			return asset_manager.AddSoundFx( soundFxName, filepath );
+		"addAudio",
+		[ & ]( const std::string& audioName, const std::string& filename ) {
+			return assetManager.AddAudio( audioName, filename, Scion::Sounds::AudioType::None );
 		},
 		"addFont",
 		[ & ]( const std::string& fontName, const std::string& fontPath, float fontSize ) {
-			return asset_manager.AddFont( fontName, fontPath, fontSize );
+			return assetManager.AddFont( fontName, fontPath, fontSize );
 		} );
 }
 void AssetManager::Update()
@@ -860,8 +699,6 @@ void AssetManager::ReloadAsset( const AssetWatchParams& assetParams )
 	case Scion::Utilities::AssetType::TEXTURE: ReloadTexture( assetParams.sAssetName ); break;
 	case Scion::Utilities::AssetType::FONT: ReloadFont( assetParams.sAssetName ); break;
 	case Scion::Utilities::AssetType::SHADER: ReloadShader( assetParams.sAssetName ); break;
-	case Scion::Utilities::AssetType::MUSIC: ReloadMusic( assetParams.sAssetName ); break;
-	case Scion::Utilities::AssetType::SOUNDFX: ReloadSoundFx( assetParams.sAssetName ); break;
 	}
 }
 
@@ -888,65 +725,10 @@ void AssetManager::ReloadTexture( const std::string& sTextureName )
 	auto pNewTexture =
 		Scion::Rendering::TextureLoader::Create( pTexture->GetType(), pTexture->GetPath(), pTexture->IsTileset() );
 
-	pTexture = pNewTexture;
+	pTexture = std::move(pNewTexture);
 	SCION_LOG( "Reloaded texture: {}", sTextureName );
 }
 
-void AssetManager::ReloadSoundFx( const std::string& sSoundFxName )
-{
-	auto fileParamItr = std::ranges::find_if( m_FilewatchParams,
-											  [ & ]( const auto& param ) { return param.sAssetName == sSoundFxName; } );
-
-	if ( fileParamItr == m_FilewatchParams.end() )
-	{
-		SCION_ERROR( "Trying to reload a texture that has not been loaded?" );
-		return;
-	}
-
-	fileParamItr->lastWrite = fs::last_write_time( fs::path{ fileParamItr->sFilepath } );
-
-	if ( !DeleteAsset( sSoundFxName, Scion::Utilities::AssetType::SOUNDFX ) )
-	{
-		SCION_ERROR( "Failed to Reload SoundFx: {}", sSoundFxName );
-		return;
-	}
-
-	if ( !AddSoundFx( sSoundFxName, fileParamItr->sFilepath ) )
-	{
-		SCION_ERROR( "Failed to Reload SoundFx: {}", sSoundFxName );
-		return;
-	}
-
-	SCION_LOG( "Reloaded SoundFx: {}", sSoundFxName );
-}
-
-void AssetManager::ReloadMusic( const std::string& sMusicName )
-{
-	auto fileParamItr = std::ranges::find_if( m_FilewatchParams,
-											  [ & ]( const auto& param ) { return param.sAssetName == sMusicName; } );
-
-	if ( fileParamItr == m_FilewatchParams.end() )
-	{
-		SCION_ERROR( "Trying to music that has not been loaded?" );
-		return;
-	}
-
-	fileParamItr->lastWrite = fs::last_write_time( fs::path{ fileParamItr->sFilepath } );
-
-	if ( !DeleteAsset( sMusicName, Scion::Utilities::AssetType::MUSIC ) )
-	{
-		SCION_ERROR( "Failed to Reload SoundFx: {}", sMusicName );
-		return;
-	}
-
-	if ( !AddMusic( sMusicName, fileParamItr->sFilepath ) )
-	{
-		SCION_ERROR( "Failed to Reload SoundFx: {}", sMusicName );
-		return;
-	}
-
-	SCION_LOG( "Reloaded Music: {}", sMusicName );
-}
 
 void AssetManager::ReloadFont( const std::string& sFontName )
 {

@@ -2,8 +2,9 @@
 #include "Core/ECS/Registry.h"
 #include "Core/ECS/MainRegistry.h"
 #include "Core/Resources/AssetManager.h"
-#include <Sounds/MusicPlayer/MusicPlayer.h>
-#include <Sounds/SoundPlayer/SoundFxPlayer.h>
+#include <Sounds/AudioPlayer/AudioPlayer.hpp>
+#include <Sounds/Essentials/Audio.hpp>
+
 #include <Logger/Logger.h>
 
 using namespace Scion::Sounds;
@@ -12,77 +13,63 @@ using namespace SCION_RESOURCES;
 void Scion::Core::Scripting::SoundBinder::CreateSoundBind( sol::state& lua )
 {
 	auto& mainRegistry = MAIN_REGISTRY();
-	auto& musicPlayer = mainRegistry.GetMusicPlayer();
+	auto& audioPlayer = mainRegistry.GetAudioPlayer();
 	auto& assetManager = mainRegistry.GetAssetManager();
 
-	lua.new_usertype<MusicPlayer>(
-		"Music",
+	// clang-format off
+	lua.new_usertype<AudioPlayer>(
+		"AudioPlayer",
 		sol::no_constructor,
-		"play",
-		sol::overload(
-			[ & ]( const std::string& musicName, int loops ) {
-				auto pMusic = assetManager.GetMusic( musicName );
-				if ( !pMusic )
-				{
-					SCION_ERROR( "Failed to get music [{}] - From the asset maanger!", musicName );
-					return;
-				}
-				musicPlayer.Play( *pMusic, loops );
+		"get", [&audioPlayer](sol::this_state s) { return sol::make_reference(s, std::ref(audioPlayer)); },
+		"playTrack", sol::overload(
+			[&audioPlayer](int trackNum) {
+				return audioPlayer.PlayTrack( trackNum );
 			},
-			[ & ]( const std::string& musicName ) {
-				auto pMusic = assetManager.GetMusic( musicName );
-				if ( !pMusic )
-				{
-					SCION_ERROR( "Failed to get music [{}] - From the asset maanger!", musicName );
-					return;
-				}
-				musicPlayer.Play( *pMusic, -1 );
-			} ),
-		"stop",
-		[ & ]() { musicPlayer.Stop(); },
-		"pause",
-		[ & ]() { musicPlayer.Pause(); },
-		"resume",
-		[ & ]() { musicPlayer.Resume(); },
-		"setVolume",
-		[ & ]( int volume ) { musicPlayer.SetVolume( volume ); },
-		"isPlaying",
-		[ & ]() { return musicPlayer.IsPlaying(); },
-		"isPaused",
-		[ & ]() { return musicPlayer.IsPaused(); } );
-
-	// Create the SoundFxPlayer Bindings
-	auto& soundFxPlayer = mainRegistry.GetSoundPlayer();
-
-	lua.new_usertype<SoundFxPlayer>(
-		"Sound",
-		sol::no_constructor,
-		"play",
-		sol::overload(
-			[ & ]( const std::string& soundName ) {
-				auto pSoundFx = assetManager.GetSoundFx( soundName );
-				if ( !pSoundFx )
-				{
-					SCION_ERROR( "Failed to get [{}] from the Asset Manager", soundName );
-					return;
-				}
-
-				soundFxPlayer.Play( *pSoundFx );
+			[&audioPlayer](int trackNum, int loops) {
+				return audioPlayer.PlayTrack( trackNum, loops);
 			},
-			[ & ]( const std::string& soundName, int loops, int channel ) {
-				auto pSoundFx = assetManager.GetSoundFx( soundName );
-				if ( !pSoundFx )
+			[&audioPlayer, &assetManager](int trackNum, const std::string& audioName) {
+				auto* pAudio = assetManager.GetAudio( audioName );
+				if (!pAudio || !pAudio->GetAudioPtr())
 				{
-					SCION_ERROR( "Failed to get [{}] from the Asset Manager", soundName );
-					return;
+					SCION_ERROR("Failed to play track. Audio [{}] does not exist in asset manager or is invalid.", audioName);
+					return false;
 				}
 
-				soundFxPlayer.Play( *pSoundFx, loops, channel );
-			} ),
-		"stop",
-		[ & ]( int channel ) { soundFxPlayer.Stop( channel ); },
-		"setVolume",
-		[ & ]( int channel, int volume ) { soundFxPlayer.SetVolume( channel, volume ); },
-		"isPlaying",
-		[ & ]( int channel ) { return soundFxPlayer.IsPlaying( channel ); } );
+				return audioPlayer.PlayTrack( trackNum, pAudio->GetAudioPtr(), 0);
+			},
+			[&audioPlayer, &assetManager](int trackNum, const std::string& audioName, int loops) {
+				auto* pAudio = assetManager.GetAudio( audioName );
+				if (!pAudio || !pAudio->GetAudioPtr())
+				{
+					SCION_ERROR("Failed to play track. Audio [{}] does not exist in asset manager or is invalid.", audioName);
+					return false;
+				}
+
+				return audioPlayer.PlayTrack( trackNum, pAudio->GetAudioPtr(), loops);
+			}
+		),
+		"stopTrack", sol::overload(
+			[&audioPlayer] (int trackNum ) { return audioPlayer.StopTrack(trackNum, 0); },
+			[&audioPlayer] (int trackNum, int fadeOutFrames ) { return audioPlayer.StopTrack(trackNum, fadeOutFrames); }
+		),
+		"stopAllTracks", [&audioPlayer] { audioPlayer.StopAllTracks(); },
+		"pauseTrack", [&audioPlayer] (int trackNum) { return audioPlayer.PauseTrack(trackNum); },
+		"resumeTrack", [&audioPlayer] (int trackNum) { return audioPlayer.ResumeTrack(trackNum); },
+		"fadeInAudio",[&audioPlayer, &assetManager] (int trackNum, const std::string& audioName, int milliseconds)
+		{
+			auto* pAudio = assetManager.GetAudio( audioName );
+				if (!pAudio || !pAudio->GetAudioPtr())
+				{
+					SCION_ERROR("Failed to Fade in audio. Audio [{}] does not exist in asset manager or is invalid.", audioName);
+					return false;
+				}
+
+			return audioPlayer.FadeInAudio(trackNum, pAudio->GetAudioPtr(), milliseconds);
+		},
+		"setTrackVolume", [&audioPlayer] (int trackNum, float volume) { return audioPlayer.SetTrackVolume(trackNum, volume); },
+		"isTrackPlaying", [&audioPlayer] (int trackNum) { return audioPlayer.IsTrackPlaying(trackNum); },
+		"isTrackPaused", [&audioPlayer] (int trackNum) { return audioPlayer.IsTrackPaused(trackNum); }
+	);
+	// clang-format on
 }

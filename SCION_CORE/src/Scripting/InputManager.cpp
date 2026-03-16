@@ -18,16 +18,18 @@ InputManager::InputManager()
 	: m_pKeyboard{ std::make_unique<Keyboard>() }
 	, m_pMouse{ std::make_unique<Mouse>() }
 {
+	int count{ 0 };
+	SDL_JoystickID* gamepads = SDL_GetGamepads( &count );
 	// Load already connected devices
-	for ( int i = 0; i < SDL_NumJoysticks(); ++i )
+	for ( int i = 0; i < count; ++i )
 	{
-		SDL_GameController* pController = SDL_GameControllerOpen( i );
+		SDL_Gamepad* pController = SDL_OpenGamepad( i );
 		if ( pController )
 		{
 			std::shared_ptr<Gamepad> gamepad{ nullptr };
 			try
 			{
-				gamepad = std::make_shared<Gamepad>( std::move( MakeSharedFromSDLType<Controller>( pController ) ) );
+				gamepad = std::make_shared<Gamepad>( std::move( MakeUniqueFromSDLType<SDL_Gamepad>( pController ) ) );
 			}
 			catch ( ... )
 			{
@@ -357,7 +359,7 @@ void InputManager::CreateLuaInputBindings( sol::state& lua, Scion::Core::ECS::Re
 			gamepad->RumbleController( lowFrequency, highFrequency, durationMs );
 		},
 		"isRumbleSupported",
-		[ & ]( int index) {
+		[ & ]( int index ) {
 			auto gamepad = inputManager.GetController( index );
 			if ( !gamepad )
 			{
@@ -365,9 +367,8 @@ void InputManager::CreateLuaInputBindings( sol::state& lua, Scion::Core::ECS::Re
 				return false;
 			}
 
-			return gamepad->IsRumbleSupported( );
-		}
-	);
+			return gamepad->IsRumbleSupported();
+		} );
 }
 
 void InputManager::UpdateInputs()
@@ -421,7 +422,7 @@ int InputManager::AddGamepad( Sint32 gamepadIndex )
 	try
 	{
 		gamepad = std::make_shared<Gamepad>(
-			std::move( MakeSharedFromSDLType<Controller>( SDL_GameControllerOpen( gamepadIndex ) ) ) );
+			std::move( MakeUniqueFromSDLType<SDL_Gamepad>( SDL_OpenGamepad( gamepadIndex ) ) ) );
 	}
 	catch ( ... )
 	{
@@ -470,7 +471,7 @@ void InputManager::GamepadBtnPressed( const SDL_Event& event )
 	{
 		if ( gamepad && gamepad->CheckJoystickID( event.jdevice.which ) )
 		{
-			gamepad->OnBtnPressed( event.cbutton.button );
+			gamepad->OnBtnPressed( event.gbutton.button );
 			break;
 		}
 	}
@@ -482,7 +483,7 @@ void InputManager::GamepadBtnReleased( const SDL_Event& event )
 	{
 		if ( gamepad && gamepad->CheckJoystickID( event.jdevice.which ) )
 		{
-			gamepad->OnBtnReleased( event.cbutton.button );
+			gamepad->OnBtnReleased( event.gbutton.button );
 			break;
 		}
 	}

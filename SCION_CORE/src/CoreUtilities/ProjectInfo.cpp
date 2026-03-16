@@ -2,7 +2,11 @@
 #include "Rendering/Essentials/Texture.h"
 #include "Rendering/Essentials/TextureLoader.h"
 #include "Logger/Logger.h"
-#include <SDL_mixer.h>
+#include <SDL3_mixer/SDL_mixer.h>
+
+// Hack for Audio Channel changing -- Should trigger an event
+#include "Sounds/AudioPlayer/AudioPlayer.hpp"
+#include "Core/ECS/MainRegistry.h"
 
 using namespace Scion::Rendering;
 
@@ -114,7 +118,11 @@ bool AudioConfigInfo::UpdateSoundChannels( int numChannels )
 	else if ( numChannels < 0 )
 		RemoveChannels( -numChannels );
 
-	Mix_AllocateChannels( allocatedSoundChannels );
+	if ( !MAIN_REGISTRY().GetAudioPlayer().SetMaxTracksCount( allocatedSoundChannels ) )
+	{
+		SCION_ERROR( "Failed up update sound channels" );
+		return false;
+	}
 
 	return true;
 }

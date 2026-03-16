@@ -1,6 +1,6 @@
 #pragma once
 #include <sol/sol.hpp>
-#include <SDL_mixer.h>
+#include <SDL3_mixer/SDL_mixer.h>
 
 using Cursor = std::shared_ptr<struct SDL_Cursor>;
 
@@ -23,8 +23,8 @@ class Font;
 
 namespace Scion::Sounds
 {
-class Music;
-class SoundFX;
+class Audio;
+enum class AudioType;
 } // namespace Scion::Sounds
 
 namespace SCION_RESOURCES
@@ -67,7 +67,7 @@ class AssetManager
 	 * @param An std::string for the texture name to lookup.
 	 * @return Returns the desired texture if it exists, else returns nullptr
 	 */
-	std::shared_ptr<Scion::Rendering::Texture> GetTexture( const std::string& textureName );
+	Scion::Rendering::Texture* GetTexture( const std::string& textureName );
 
 	/*
 	 * @brief Get the names of all the textures that are flagged as tilesets.
@@ -100,7 +100,7 @@ class AssetManager
 	 * @param An std::string for the font name to lookup.
 	 * @return Returns the desired font if it exists, else returns nullptr
 	 */
-	std::shared_ptr<Scion::Rendering::Font> GetFont( const std::string& fontName );
+	Scion::Rendering::Font* GetFont( const std::string& fontName );
 
 	/*
 	 * @brief Checks to see if the Shader exists, and if not, creates and loads the Shader into the
@@ -127,73 +127,19 @@ class AssetManager
 	 * @param An std::string for the shader name to lookup.
 	 * @return Returns the desired shader if it exists, else returns nullptr
 	 */
-	std::shared_ptr<Scion::Rendering::Shader> GetShader( const std::string& shaderName );
+	Scion::Rendering::Shader* GetShader( const std::string& shaderName );
 
-	/*
-	 * @brief Checks to see if the Music exists, and if not, creates and loads the Music into the
-	 * asset manager.
-	 * @param An std::string for the music name to be use as the key.
-	 * @param An std::string for the filepath where the music file is located.
-	 * @return Returns true if the music was created and loaded successfully, false otherwise.
-	 */
-	bool AddMusic( const std::string& musicName, const std::string& filepath );
+	bool AddAudio( const std::string& audioName, const std::string& filepath, Scion::Sounds::AudioType eType );
+	bool AddAudioFromMemory( const std::string& audioName, const unsigned char* audioData, size_t dataSize,
+							 Scion::Sounds::AudioType eType );
 
-	/*
-	 * @brief Checks to see if the Music exists, and if not, creates and loads the Music into the
-	 * asset manager.
-	 * @param An std::string for the Music name to be use as the key.
-	 * @param const unsigned char* to the music data
-	 * @param size_t The size of the music sent in.
-	 * @return Returns true if the Music was created and loaded successfully, false otherwise.
-	 */
-	bool AddMusicFromMemory( const std::string& musicName, const unsigned char* musicData, size_t dataSize );
-
-	/*
-	 * @brief Checks to see if the music exists based on the name and returns shared_ptr<Music>.
-	 * @param An std::string for the music name to lookup.
-	 * @return Returns an std::shared_ptr<Music> if it exists, else returns nullptr
-	 */
-	std::shared_ptr<Scion::Sounds::Music> GetMusic( const std::string& musicName );
-
-	/*
-	 * @brief Detects the audio format of an in-memory data buffer.
-	 * @param audioData pointer to the beginning of the audio data in memory.
-	 * @param dataSize Size of the audio data buffer in bytes.
-	 * @return An enum representing the audio format. (e.g. MUS_WAV, MUS_MP3, MUS_OGG)
-	 */
-	Mix_MusicType DetectAudioFormat( const unsigned char* audioData, size_t dataSize );
-
-	/*
-	 * @brief Checks to see if the SoundFx exists, and if not, creates and loads the SoundFx into the
-	 * asset manager.
-	 * @param An std::string for the SoundFx name to be use as the key.
-	 * @param An std::string for the filepath where the SoundFx file is located.
-	 * @return Returns true if the Soundfx was created and loaded successfully, false otherwise.
-	 */
-	bool AddSoundFx( const std::string& soundFxName, const std::string& filepath );
-
-	/*
-	 * @brief Checks to see if the SoundFx exists, and if not, creates and loads the SoundFx into the
-	 * asset manager.
-	 * @param An std::string for the SoundFx name to be use as the key.
-	 * @param const unsigned char* to the soundfx data
-	 * @param size_t The size of the soundfx sent in.
-	 * @return Returns true if the Soundfx was created and loaded successfully, false otherwise.
-	 */
-	bool AddSoundFxFromMemory( const std::string& soundFxName, const unsigned char* soundFxData, size_t dataSize );
+	Scion::Sounds::Audio* GetAudio( const std::string& audioName );
 
 	std::string GetAssetFilepath( const std::string& sAssetName, Scion::Utilities::AssetType eAssetType );
 
-	/*
-	 * @brief Checks to see if the soundFx exists based on the name and returns shared_ptr<SoundFX>.
-	 * @param An std::string for the SoundFx name to lookup.
-	 * @return Returns an std::shared_ptr<SoundFx> if it exists, else returns nullptr
-	 */
-	std::shared_ptr<Scion::Sounds::SoundFX> GetSoundFx( const std::string& soundFxName );
+	bool AddPrefab( const std::string& sPrefabName, std::unique_ptr<Scion::Core::Prefab> pPrefab );
 
-	bool AddPrefab( const std::string& sPrefabName, std::shared_ptr<Scion::Core::Prefab> pPrefab );
-
-	std::shared_ptr<Scion::Core::Prefab> GetPrefab( const std::string& sPrefabName );
+	Scion::Core::Prefab* GetPrefab( const std::string& sPrefabName );
 
 #ifdef IN_SCION_EDITOR
 	bool AddCursor( const std::string& sCursorName, const std::string& sCursorPath );
@@ -202,31 +148,29 @@ class AssetManager
 	SDL_Cursor* GetCursor( const std::string& sCursorName );
 #endif
 
-	inline const std::map<std::string, std::shared_ptr<Scion::Rendering::Texture>>& GetAllTextures() const
+	inline const std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Texture>>& GetAllTextures() const
 	{
 		return m_mapTextures;
 	}
 
-	inline const std::map<std::string, std::shared_ptr<Scion::Sounds::SoundFX>>& GetAllSoundFx() const
-	{
-		return m_mapSoundFx;
-	}
-
-	inline const std::map<std::string, std::shared_ptr<Scion::Rendering::Shader>>& GetAllShaders() const
+	inline const std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Shader>>& GetAllShaders() const
 	{
 		return m_mapShader;
 	}
 
-	inline const std::map<std::string, std::shared_ptr<Scion::Rendering::Font>>& GetAllFonts() const
+	inline const std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Font>>& GetAllFonts() const
 	{
 		return m_mapFonts;
 	}
 
-	inline const std::map<std::string, std::shared_ptr<Scion::Sounds::Music>>& GetAllMusic() const { return m_mapMusic; }
-
-	inline const std::map<std::string, std::shared_ptr<Scion::Core::Prefab>>& GetAllPrefabs() const
+	inline const std::unordered_map<std::string, std::unique_ptr<Scion::Core::Prefab>>& GetAllPrefabs() const
 	{
 		return m_mapPrefabs;
+	}
+
+	inline const std::unordered_map<std::string, std::unique_ptr<Scion::Sounds::Audio>>& GetAllAudio() const
+	{
+		return m_mapAudio;
 	}
 
 	/*
@@ -296,21 +240,16 @@ class AssetManager
 	};
 
 	void ReloadAsset( const AssetWatchParams& assetParams );
-
 	void ReloadTexture( const std::string& sTextureName );
-	void ReloadSoundFx( const std::string& sSoundName );
-	void ReloadMusic( const std::string& sMusicName );
 	void ReloadFont( const std::string& sFontName );
 	void ReloadShader( const std::string& sShaderName );
 
   private:
-	std::map<std::string, std::shared_ptr<Scion::Rendering::Texture>> m_mapTextures{};
-	std::map<std::string, std::shared_ptr<Scion::Rendering::Shader>> m_mapShader{};
-	std::map<std::string, std::shared_ptr<Scion::Rendering::Font>> m_mapFonts{};
-
-	std::map<std::string, std::shared_ptr<Scion::Sounds::Music>> m_mapMusic{};
-	std::map<std::string, std::shared_ptr<Scion::Sounds::SoundFX>> m_mapSoundFx{};
-	std::map<std::string, std::shared_ptr<Scion::Core::Prefab>> m_mapPrefabs{};
+	std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Texture>> m_mapTextures{};
+	std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Shader>> m_mapShader{};
+	std::unordered_map<std::string, std::unique_ptr<Scion::Rendering::Font>> m_mapFonts{};
+	std::unordered_map<std::string, std::unique_ptr<Scion::Sounds::Audio>> m_mapAudio{};
+	std::unordered_map<std::string, std::unique_ptr<Scion::Core::Prefab>> m_mapPrefabs{};
 
 #ifdef IN_SCION_EDITOR
 	std::map<std::string, Cursor> m_mapCursors;

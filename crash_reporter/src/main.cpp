@@ -1,7 +1,7 @@
 #define SDL_MAIN_HANDLED 1
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <imgui.h>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 #include <glad/glad.h>
 #include <fstream>
@@ -89,8 +89,9 @@ int main( int argc, char* argv[] )
 	std::string sCrashText = GetLastCrashEntry( sCrashLogPath );
 
 	// SDL Init
-	if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) != 0 )
+	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) )
 	{
+		SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Crash Reporter", "Failed to initialize SDL.", nullptr );
 		return 1;
 	}
 
@@ -99,16 +100,16 @@ int main( int argc, char* argv[] )
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
 
-	SDL_Window* pWindow = SDL_CreateWindow(
-		"Crash Reporter", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL );
+	SDL_Window* pWindow = SDL_CreateWindow( "Crash Reporter", 640, 480, SDL_WINDOW_OPENGL );
 
 	SDL_GLContext glContext = SDL_GL_CreateContext( pWindow );
 	SDL_GL_MakeCurrent( pWindow, glContext );
 	SDL_GL_SetSwapInterval( 1 );
 
 	// Initialize Glad
-	if ( gladLoadGLLoader( SDL_GL_GetProcAddress ) == 0 )
+	if ( !gladLoadGLLoader( (GLADloadproc)SDL_GL_GetProcAddress ) )
 	{
+		SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Crash Reporter", "Failed to load glad.", nullptr );
 		return 1;
 	}
 
@@ -118,7 +119,7 @@ int main( int argc, char* argv[] )
 	(void)io;
 
 	ImGui::StyleColorsDark();
-	ImGui_ImplSDL2_InitForOpenGL( pWindow, glContext );
+	ImGui_ImplSDL3_InitForOpenGL( pWindow, glContext );
 	ImGui_ImplOpenGL3_Init( "#version 330" );
 
 	bool bDone{ false };
@@ -128,13 +129,13 @@ int main( int argc, char* argv[] )
 		SDL_Event event;
 		while ( SDL_PollEvent( &event ) )
 		{
-			ImGui_ImplSDL2_ProcessEvent( &event );
-			if ( event.type == SDL_QUIT )
+			ImGui_ImplSDL3_ProcessEvent( &event );
+			if ( event.type == SDL_EVENT_QUIT )
 				bDone = true;
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
+		ImGui_ImplSDL3_NewFrame();
 		ImGui::NewFrame();
 
 		ImGui::SetNextWindowPos( ImVec2{ 0.f, 0.f } );
@@ -168,9 +169,9 @@ int main( int argc, char* argv[] )
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
+	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
-	SDL_GL_DeleteContext( glContext );
+	SDL_GL_DestroyContext( glContext );
 	SDL_DestroyWindow( pWindow );
 	SDL_Quit();
 

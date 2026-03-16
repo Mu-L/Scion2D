@@ -1,6 +1,6 @@
 #pragma once
 #include <sol/sol.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace Scion::Core::ECS
 {

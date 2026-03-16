@@ -17,7 +17,12 @@ add_library(SCION_UTILITIES
 target_include_directories(
     SCION_UTILITIES PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(SCION_UTILITIES PUBLIC SCION_LOGGER SDL2::SDL2)
+target_link_libraries(
+	SCION_UTILITIES PUBLIC
+	SCION_LOGGER
+	SDL3::SDL3
+	SDL3_mixer::SDL3_mixer-static
+)
 
 target_compile_options(
     SCION_UTILITIES PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>)

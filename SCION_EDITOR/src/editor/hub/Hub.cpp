@@ -18,9 +18,8 @@
 // ===================================
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
-#include <SDL_opengl.h>
 // ===================================
 
 constexpr ImVec2 BUTTON_SIZE = ImVec2{ 100.f, 20.f };
@@ -73,8 +72,8 @@ bool Hub::Run()
 
 	if ( !bClosed )
 	{
-		SDL_SetWindowBordered( m_Window.GetWindow().get(), SDL_TRUE );
-		SDL_SetWindowResizable( m_Window.GetWindow().get(), SDL_TRUE );
+		SDL_SetWindowBordered( m_Window.GetWindow().get(), true );
+		SDL_SetWindowResizable( m_Window.GetWindow().get(), true);
 		SDL_MaximizeWindow( m_Window.GetWindow().get() );
 
 		std::string sTitle{ "Scion2D - " };
@@ -306,15 +305,15 @@ void Hub::ProcessEvents()
 	// Process Events
 	while ( SDL_PollEvent( &m_Event ) )
 	{
-		ImGui_ImplSDL2_ProcessEvent( &m_Event );
+		ImGui_ImplSDL3_ProcessEvent( &m_Event );
 
 		switch ( m_Event.type )
 		{
-		case SDL_QUIT: m_bRunning = false; break;
-		case SDL_KEYDOWN:		  // keyboard.OnKeyPressed( m_Event.key.keysym.sym ); break;
-		case SDL_KEYUP:			  // keyboard.OnKeyReleased( m_Event.key.keysym.sym ); break;
-		case SDL_MOUSEBUTTONDOWN: // mouse.OnBtnPressed( m_Event.button.button ); break;
-		case SDL_MOUSEBUTTONUP:	  // mouse.OnBtnReleased( m_Event.button.button ); break;
+		case SDL_EVENT_QUIT: m_bRunning = false; break;
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
 		default: break;
 		}
 	}

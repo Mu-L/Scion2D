@@ -15,7 +15,7 @@ class Registry
 {
   public:
 	Registry();
-	~Registry() = default;
+	~Registry();
 
 	/*
 	 * @brief Checks to see if the entity is valid.

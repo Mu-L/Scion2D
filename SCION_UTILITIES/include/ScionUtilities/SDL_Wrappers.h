@@ -1,6 +1,6 @@
 #pragma once
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include <SDL3/SDL.h>
+#include <SDL3_mixer/SDL_mixer.h>
 
 namespace Scion::Utilities
 {
@@ -12,19 +12,23 @@ namespace Scion::Utilities
 struct SDL_Destroyer
 {
 	void operator()( SDL_Window* window ) const;
-	void operator()( SDL_GameController* controller ) const;
-	void operator()( Mix_Chunk* chunk ) const;
-	void operator()( Mix_Music* music ) const;
+	void operator()( SDL_Gamepad* controller ) const;
 	void operator()( SDL_Cursor* cursor ) const;
+	void operator()( MIX_Audio* audio ) const;
+	void operator()( MIX_Mixer* audio ) const;
+	void operator()( SDL_AudioStream* stream ) const;
+	void operator()( MIX_Track* track ) const;
 };
 } // namespace Scion::Utilities
 
 // Useful Aliases
-using Controller = std::shared_ptr<SDL_GameController>;
-using Cursor = std::shared_ptr<SDL_Cursor>;
-using WindowPtr = std::unique_ptr<SDL_Window, Scion::Utilities::SDL_Destroyer>;
-using SoundFxPtr = std::unique_ptr<Mix_Chunk, Scion::Utilities::SDL_Destroyer>;
-using MusicPtr = std::unique_ptr<Mix_Music, Scion::Utilities::SDL_Destroyer>;
+using GamepadUPtr = std::unique_ptr<SDL_Gamepad, Scion::Utilities::SDL_Destroyer>;
+using CursorUPtr = std::unique_ptr<SDL_Cursor, Scion::Utilities::SDL_Destroyer>;
+using WindowUPtr = std::unique_ptr<SDL_Window, Scion::Utilities::SDL_Destroyer>;
+using AudioUPtr = std::unique_ptr<MIX_Audio, Scion::Utilities::SDL_Destroyer>;
+using MixerUPtr = std::unique_ptr<MIX_Mixer, Scion::Utilities::SDL_Destroyer>;
+using TrackUPtr = std::unique_ptr<MIX_Track, Scion::Utilities::SDL_Destroyer>;
+using AudioStreamUPtr = std::unique_ptr<SDL_AudioStream, Scion::Utilities::SDL_Destroyer>;
 
 /**
  * @brief Creates a std::shared_ptr from a raw SDL pointer with a custom deleter.
@@ -42,4 +46,13 @@ template <typename RPtr, typename TSDLType>
 inline RPtr MakeSharedFromSDLType( TSDLType* pSDLType )
 {
 	return std::shared_ptr<TSDLType>( pSDLType, Scion::Utilities::SDL_Destroyer{} );
+}
+
+template <typename TSdlType, auto DeleterFn>
+using SdlPtr = std::unique_ptr<TSdlType, decltype( DeleterFn )>;
+
+template <typename TSdlType, auto DeleterFn = Scion::Utilities::SDL_Destroyer{}>
+SdlPtr<TSdlType, DeleterFn> MakeUniqueFromSDLType( TSdlType* ptr )
+{
+	return SdlPtr<TSdlType, DeleterFn>( ptr, DeleterFn );
 }

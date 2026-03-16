@@ -167,24 +167,24 @@ bool ShaderLoader::LinkShaders( GLuint program, GLuint vertexShader, GLuint frag
 	return true;
 }
 
-std::shared_ptr<Shader> ShaderLoader::Create( const std::string& vertexShaderPath,
+std::unique_ptr<Shader> ShaderLoader::Create( const std::string& vertexShaderPath,
 											  const std::string& fragmentShaderPath )
 {
 	GLuint program = CreateProgram( vertexShaderPath, fragmentShaderPath );
 
 	if ( program )
-		return std::make_shared<Shader>( program, vertexShaderPath, fragmentShaderPath );
+		return std::make_unique<Shader>( program, vertexShaderPath, fragmentShaderPath );
 
 	return nullptr;
 }
 
-std::shared_ptr<Shader> ShaderLoader::CreateFromMemory( const char* vertexShader, const char* fragmentShader )
+std::unique_ptr<Shader> ShaderLoader::CreateFromMemory( const char* vertexShader, const char* fragmentShader )
 {
 	GLuint program = CreateProgram( vertexShader, fragmentShader );
 
 	// From memory holds onto the shader itself, not the path
 	if ( program )
-		return std::make_shared<Shader>( program, vertexShader, fragmentShader );
+		return std::make_unique<Shader>( program, vertexShader, fragmentShader );
 
 	return nullptr;
 }

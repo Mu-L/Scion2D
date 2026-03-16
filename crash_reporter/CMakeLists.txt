@@ -7,7 +7,8 @@ target_include_directories(
 
 target_link_libraries(
 	SCION_CRASH_REPORTER
-	PRIVATE  $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+	PRIVATE
+	SDL3::SDL3
 	glad::glad
 	soil2
 	imgui

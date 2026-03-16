@@ -72,10 +72,10 @@ Scion::Rendering::Texture* GetIconTexture( const std::string& sPath )
 	auto& assetManager = ASSET_MANAGER();
 	switch ( GetFileType( sPath ) )
 	{
-	case EFileType::SOUND: return assetManager.GetTexture( "S2D_music_icon" ).get();
-	case EFileType::IMAGE: return assetManager.GetTexture( "S2D_image_icon" ).get();
-	case EFileType::TXT: return assetManager.GetTexture( "S2D_file_icon" ).get();
-	case EFileType::FOLDER: return assetManager.GetTexture( "S2D_folder_icon" ).get();
+	case EFileType::SOUND: return assetManager.GetTexture( "S2D_music_icon" );
+	case EFileType::IMAGE: return assetManager.GetTexture( "S2D_image_icon" );
+	case EFileType::TXT: return assetManager.GetTexture( "S2D_file_icon" );
+	case EFileType::FOLDER: return assetManager.GetTexture( "S2D_folder_icon" );
 	default: return nullptr;
 	}
 }

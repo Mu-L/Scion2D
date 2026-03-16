@@ -20,9 +20,10 @@
 #include "editor/events/EditorEventTypes.h"
 
 #include "ScionUtilities/ScionUtilities.h"
+#include "Sounds/Essentials/Audio.hpp"
 
 #include <imgui.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace Scion::Editor
 {
@@ -249,7 +250,10 @@ void MenuDisplay::Draw()
 
 					bChanged = true;
 
-					auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllMusic() );
+					auto musicNames = Scion::Utilities::GetKeys( ASSET_MANAGER().GetAllAudio(), []( const auto& pair ) {
+						return pair.second->GetType() == Scion::Sounds::AudioType::Music;
+					} );
+
 					musicNames.push_back( "None" );
 
 					std::string sDefaultSceneMusic{ pCurrentScene->GetDefaultMusicName() };

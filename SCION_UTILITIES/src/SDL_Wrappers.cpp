@@ -2,31 +2,65 @@
 #include <iostream>
 #include <Logger/Logger.h>
 
-void Scion::Utilities::SDL_Destroyer::operator()( SDL_Window* window ) const
+namespace Scion::Utilities
+{
+
+void SDL_Destroyer::operator()( SDL_Window* window ) const
 {
 	SDL_DestroyWindow( window );
 	SCION_LOG( "Destroyed SDL WINDOW" );
 }
 
-void Scion::Utilities::SDL_Destroyer::operator()( SDL_GameController* controller ) const
+void SDL_Destroyer::operator()( SDL_Gamepad* controller ) const
 {
-	SDL_GameControllerClose( controller );
+	SDL_CloseGamepad( controller );
 	controller = nullptr;
 	SCION_LOG( "Closed SDL Game Controller!" );
 }
 
-void Scion::Utilities::SDL_Destroyer::operator()( Mix_Chunk* chunk ) const
+void SDL_Destroyer::operator()( MIX_Audio* audio ) const
 {
-	Mix_FreeChunk( chunk );
-	SCION_LOG( "Freed SDL Mix_Chunk!" );
+	MIX_DestroyAudio( audio );
+	SCION_LOG( "Destroyed SDL MIX_Audio!" );
 }
 
-void Scion::Utilities::SDL_Destroyer::operator()( Mix_Music* music ) const
+void SDL_Destroyer::operator()( MIX_Mixer* pMixer ) const
 {
-	Mix_FreeMusic( music );
-	SCION_LOG( "Freed SDL Mix_Chunk!" );
+	if ( pMixer )
+	{
+		SDL_PropertiesID props = MIX_GetMixerProperties( pMixer );
+		SDL_AudioDeviceID devID = (SDL_AudioDeviceID)SDL_GetNumberProperty( props, MIX_PROP_MIXER_DEVICE_NUMBER, 0 );
+
+		MIX_DestroyMixer( pMixer );
+		SDL_CloseAudioDevice( devID );
+		SCION_LOG( "Destroyed SDL Mixer" );
+	}
 }
 
-void Scion::Utilities::SDL_Destroyer::operator()( SDL_Cursor* cursor ) const
+void SDL_Destroyer::operator()( SDL_Cursor* cursor ) const
 {
+	if ( cursor )
+	{
+		SDL_DestroyCursor( cursor );
+		SCION_LOG( "Destroyed SDL Cursor" );
+	}
 }
+
+void SDL_Destroyer::operator()( SDL_AudioStream* stream ) const
+{
+	if ( stream )
+	{
+		SDL_DestroyAudioStream( stream );
+		SCION_LOG( "Destroyed SDL Audio Stream" );
+	}
+}
+void SDL_Destroyer::operator()( MIX_Track* track ) const
+{
+	if ( track )
+	{
+		MIX_DestroyTrack( track );
+		SCION_LOG( "Destroyed SDL Mix Track" );
+	}
+}
+
+} // namespace Scion::Utilities

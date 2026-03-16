@@ -1,14 +1,14 @@
 #pragma once
 #include <sol/sol.hpp>
 #include "Core/ECS/Registry.h"
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 namespace Scion::Windowing::Inputs
 {
 class Gamepad;
 class Keyboard;
 class Mouse;
-}
+} // namespace Scion::Windowing::Inputs
 
 constexpr int MAX_CONTROLLERS = 4;
 
@@ -28,14 +28,15 @@ class InputManager
 
 	void UpdateInputs();
 	bool GamepadConnected() const;
-	bool GamepadConnected(int location) const;
+	bool GamepadConnected( int location ) const;
 
 	inline Scion::Windowing::Inputs::Keyboard& GetKeyboard() { return *m_pKeyboard; }
 	inline Scion::Windowing::Inputs::Mouse& GetMouse() { return *m_pMouse; }
 
-	inline std::map<int, std::shared_ptr<Scion::Windowing::Inputs::Gamepad>>& GetControllers() { return m_mapGameControllers; }
-
-	
+	inline std::map<int, std::shared_ptr<Scion::Windowing::Inputs::Gamepad>>& GetControllers()
+	{
+		return m_mapGameControllers;
+	}
 
 	/*
 	 * @brief Get the controller at a desired index.

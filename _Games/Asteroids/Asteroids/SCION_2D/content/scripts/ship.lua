@@ -187,7 +187,7 @@ end
 -- @brief Upgrades the ship's weapon, adjusting cooldown and setting upgrade timer.
 -----------------------------------------------------------------------------------------------------------------
 function Ship:UpgradeWeapon()
-	Sound.play("weapon_powerup")
+	AudioPlayer.playTrack(-1, "weapon_powerup")
 	self.currentWeapon = S2D_clamp(self.currentWeapon + 1, 0, 3)
 	
 	if self.currentWeapon == 1 then 
@@ -229,7 +229,7 @@ function Ship:TakeDamage(amount)
 	if self.bShieldEnabled then
 		self.shieldHealth = S2D_clamp(self.shieldHealth - amount, 0, 100)
 		
-		Sound.play("shield_hit_1")
+		AudioPlayer.playTrack(-1, "shield_hit_1")
 		if self.shieldHealth <= 0 then 
 			self.bShieldEnabled = false 
 			self.shieldHealth = 0 
@@ -266,8 +266,8 @@ function Ship:TakeDamage(amount)
 			)
 		)
 		
-		Sound.play("ship_hit_1")
-		Sound.play("ship_damage_1")
+		AudioPlayer.playTrack(-1, "ship_hit_1")
+		AudioPlayer.playTrack(-1, "ship_damage_1")
 		
 		self.inputManager:Rumble(0xffff, 0xffff, 1000)
 		
@@ -341,7 +341,7 @@ function Ship:Update()
 			)
 			self.cooldownTimer:start()
 			gProjectileHandler:AddProjectile(projectile)
-			Sound.play("laser")
+			AudioPlayer.playTrack(-1, "laser")
 		end
 	-- Reset cooldown when elapsed
 	elseif self.cooldownTimer:elapsed_ms() >= self.coolDown then 
@@ -395,7 +395,7 @@ function Ship:OnShipDestroy()
 		
 		self.numLives = self.numLives - 1
 		self.deathTimer:start()
-		Sound.play("ship_explosion")
+		AudioPlayer.playTrack(-1, "ship_explosion")
 	end
 end
 

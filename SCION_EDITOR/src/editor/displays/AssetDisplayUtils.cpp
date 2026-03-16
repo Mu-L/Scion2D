@@ -7,7 +7,12 @@
 #include "editor/scene/SceneObject.h"
 #include "editor/utilities/imgui/ImGuiUtils.h"
 #include "Logger/Logger.h"
+
+#include "Sounds/AudioPlayer/AudioPlayer.hpp"
+#include "Sounds/Essentials/Audio.hpp"
+
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 namespace fs = std::filesystem;
 
@@ -33,25 +38,59 @@ static const std::map<std::string, Scion::Core::EMapType> g_mapStringToMapTypes{
 
 namespace
 {
+
+struct AddAssetParams
+{
+	std::string sAssetName{};
+	std::string sFilepath{};
+	Scion::Utilities::AssetType eAssetType;
+	std::optional<bool> optbTileset{ std::nullopt };
+	std::optional<bool> optbPixelArt{ std::nullopt };
+	std::optional<bool> optbSdfFont{ std::nullopt };
+	std::optional<float> optFontSize{ std::nullopt };
+	std::optional<std::string> optVertPath{ std::nullopt };
+	std::optional<std::string> optFragPath{ std::nullopt };
+};
+
 class AssetModalCreator
 {
   public:
 	AssetModalCreator() {}
 
-	bool AddAssetBasedOnType( const std::string& sAssetName, const std::string& sFilepath,
-							  Scion::Utilities::AssetType eAssetType, bool bPixelArt = true, bool bTileset = false,
-							  float fontSize = 32.f )
+	bool AddAssetBasedOnType( const AddAssetParams& assetParams )
 	{
 		auto& assetManager = MAIN_REGISTRY().GetAssetManager();
-		switch ( eAssetType )
+		switch ( assetParams.eAssetType )
 		{
-		case Scion::Utilities::AssetType::TEXTURE:
-			return assetManager.AddTexture( sAssetName, sFilepath, bPixelArt, bTileset );
-		case Scion::Utilities::AssetType::FONT: return assetManager.AddFont( sAssetName, sFilepath, fontSize );
-		case Scion::Utilities::AssetType::SOUNDFX: return assetManager.AddSoundFx( sAssetName, sFilepath );
-		case Scion::Utilities::AssetType::MUSIC: return assetManager.AddMusic( sAssetName, sFilepath );
-		case Scion::Utilities::AssetType::SCENE: return false;
+		case Scion::Utilities::AssetType::TEXTURE: {
+			SCION_ASSERT( assetParams.optbPixelArt && assetParams.optbTileset &&
+						  "These must be set when adding textures" );
+
+			return assetManager.AddTexture(
+				assetParams.sAssetName, assetParams.sFilepath, *assetParams.optbPixelArt, *assetParams.optbTileset );
 		}
+		case Scion::Utilities::AssetType::FONT: {
+			SCION_ASSERT( assetParams.optbSdfFont && assetParams.optFontSize && "These must be set when adding fonts" );
+
+			return assetManager.AddFont(
+				assetParams.sAssetName, assetParams.sFilepath, *assetParams.optFontSize );
+		}
+		case Scion::Utilities::AssetType::SOUNDFX: {
+			return assetManager.AddAudio(
+				assetParams.sAssetName, assetParams.sFilepath, Scion::Sounds::AudioType::Soundfx );
+		}
+		case Scion::Utilities::AssetType::MUSIC: {
+			return assetManager.AddAudio(
+				assetParams.sAssetName, assetParams.sFilepath, Scion::Sounds::AudioType::Music );
+		}
+		case Scion::Utilities::AssetType::SCENE: return false;
+		case Scion::Utilities::AssetType::SHADER: {
+			SCION_ASSERT( assetParams.optFragPath && assetParams.optVertPath &&
+						  "Vert and Frag paths must be set for shaders." );
+			return assetManager.AddShader( assetParams.sAssetName, *assetParams.optVertPath, *assetParams.optFragPath );
+		}
+		}
+
 		return false;
 	}
 
@@ -151,6 +190,7 @@ class AssetModalCreator
 			ImGui::EndPopup();
 		}
 	}
+
 	void AddAssetModal( Scion::Utilities::AssetType eAssetType, bool* pbOpen )
 	{
 		std::string sAssetType{ Scion::Editor::AssetDisplayUtils::AddAssetBasedOnType( eAssetType ) };
@@ -160,68 +200,143 @@ class AssetModalCreator
 
 		if ( ImGui::BeginPopupModal( sAssetType.c_str() ) )
 		{
-			static std::string sAssetName{};
-			static std::string sFilepath{};
-			static bool bTileset{ false };
-			static bool bPixelArt{ false };
-			static float fontSize{ 32.f };
-
-			std::string sCheckName{ sAssetName.data() };
-			std::string sCheckFilepath{ sFilepath.data() };
-
-			ImGui::InputText( "##assetName", sAssetName.data(), 255 );
-			std::string sNameError{ CheckForAsset( sCheckName, eAssetType ) };
-			ImGui::InputText( "##filepath", sFilepath.data(), 255 );
-			ImGui::SameLine();
-			if ( ImGui::Button( "Browse" ) )
+			if ( m_AddAssetParams.eAssetType != eAssetType )
 			{
-				FileDialog fd{};
-				sFilepath =
-					fd.OpenFileDialog(
-						"Open", BASE_PATH, 
-						Scion::Editor::AssetDisplayUtils::GetAssetFileFilters( eAssetType ),
-						Scion::Editor::AssetDisplayUtils::GetAssetDescriptionByType( eAssetType )
-					);
+				m_AddAssetParams.eAssetType = eAssetType;
+			}
 
-				if ( !sFilepath.empty() )
+			std::string sCheckName{ m_AddAssetParams.sAssetName.data() };
+			std::string sCheckFilepath{ m_AddAssetParams.sFilepath.data() };
+
+			ImGui::InputText( "##assetName", &m_AddAssetParams.sAssetName );
+			std::string sNameError{ CheckForAsset( sCheckName, eAssetType ) };
+
+			if ( eAssetType != Scion::Utilities::AssetType::SHADER )
+			{
+				ImGui::InputText( "##filepath", &m_AddAssetParams.sFilepath );
+
+				ImGui::SameLine();
+				if ( ImGui::Button( "Browse" ) )
 				{
-					fs::path path{ sFilepath };
-					sAssetName = path.stem().string();
+					FileDialog fd{};
+					m_AddAssetParams.sFilepath = fd.OpenFileDialog(
+						"Open", "", Scion::Editor::AssetDisplayUtils::GetAssetFileFilters( eAssetType ) );
+
+					if ( !m_AddAssetParams.sFilepath.empty() )
+					{
+						fs::path path{ m_AddAssetParams.sFilepath };
+						m_AddAssetParams.sAssetName = path.stem().string();
+					}
 				}
 			}
 
 			if ( eAssetType == Scion::Utilities::AssetType::TEXTURE )
 			{
-				ImGui::Checkbox( "Pixel Art", &bPixelArt );
-				ImGui::Checkbox( "Tileset", &bTileset );
+				if ( !m_AddAssetParams.optbPixelArt )
+				{
+					m_AddAssetParams.optbPixelArt = false;
+				}
+
+				if ( !m_AddAssetParams.optbTileset )
+				{
+					m_AddAssetParams.optbTileset = false;
+				}
+
+				ImGui::Checkbox( "Pixel Art", &( *m_AddAssetParams.optbPixelArt ) );
+				ImGui::Checkbox( "Tileset", &( *m_AddAssetParams.optbTileset ) );
 			}
 			else if ( eAssetType == Scion::Utilities::AssetType::FONT )
 			{
-				ImGui::InputFloat( "Font Size", &fontSize, 1.f, 1.f, "%.1f" );
+				if ( !m_AddAssetParams.optFontSize )
+				{
+					m_AddAssetParams.optFontSize = 32.f;
+				}
+
+				if ( !m_AddAssetParams.optbSdfFont )
+				{
+					m_AddAssetParams.optbSdfFont = false;
+				}
+
+				ImGui::InlineLabel( "Font Size" );
+				if ( ImGui::InputFloat( "##Font_Size", &( *m_AddAssetParams.optFontSize ), 1.f, 1.f, "%.1f" ) )
+				{
+					if ( *m_AddAssetParams.optFontSize < 32.f )
+					{
+						m_AddAssetParams.optFontSize = 32.f;
+					}
+				}
+
+				ImGui::InlineLabel( "SDF Font" );
+				ImGui::Checkbox( "##SDF_Font", &( *m_AddAssetParams.optbSdfFont ) );
+			}
+			else if ( eAssetType == Scion::Utilities::AssetType::SHADER )
+			{
+				if ( !m_AddAssetParams.optVertPath || !m_AddAssetParams.optFragPath )
+				{
+					m_AddAssetParams.optVertPath = "";
+					m_AddAssetParams.optFragPath = "";
+				}
+
+				ImGui::InlineLabel( "Vert Path" );
+				ImGui::InputText( "##vertpath", &( *m_AddAssetParams.optVertPath ) );
+				ImGui::SameLine();
+				if ( ImGui::Button( "...##vertBrowse" ) )
+				{
+					FileDialog fd{};
+					m_AddAssetParams.optVertPath = fd.OpenFileDialog(
+						"Open", "", Scion::Editor::AssetDisplayUtils::GetAssetFileFilters( eAssetType ) );
+				}
+
+				ImGui::InlineLabel( "Frag Path" );
+				ImGui::InputText( "##fragpath", &( *m_AddAssetParams.optFragPath ) );
+				if ( ImGui::Button( "...##fragBrowse" ) )
+				{
+					FileDialog fd{};
+					m_AddAssetParams.optFragPath = fd.OpenFileDialog(
+						"Open", "", Scion::Editor::AssetDisplayUtils::GetAssetFileFilters( eAssetType ) );
+				}
 			}
 
 			if ( sNameError.empty() )
 			{
 				if ( ImGui::Button( "Ok" ) )
 				{
-					if ( fs::exists( fs::path{ sCheckFilepath } ) )
+					if ( eAssetType != Scion::Utilities::AssetType::SHADER )
 					{
-						if ( !AddAssetBasedOnType(
-								 sCheckName, sCheckFilepath, eAssetType, bPixelArt, bTileset, fontSize ) )
+						if ( fs::exists( fs::path{ sCheckFilepath } ) )
 						{
-							SCION_ERROR( "Failed to add new texture!" );
-						}
+							if ( !AddAssetBasedOnType( m_AddAssetParams ) )
+							{
+								SCION_ERROR( "Failed to add new texture!" );
+							}
 
-						bTileset = false;
-						bPixelArt = false;
-						sAssetName.clear();
-						sFilepath.clear();
-						*pbOpen = false;
-						ImGui::CloseCurrentPopup();
+							m_AddAssetParams = {};
+							*pbOpen = false;
+							ImGui::CloseCurrentPopup();
+						}
+						else
+						{
+							// TODO: Add filepath error!
+						}
 					}
 					else
 					{
-						// TODO: Add filepath error!
+						if ( fs::exists( fs::path{ *m_AddAssetParams.optVertPath } ) &&
+							 fs::exists( fs::path{ *m_AddAssetParams.optFragPath } ) )
+						{
+							if ( !AddAssetBasedOnType( m_AddAssetParams ) )
+							{
+								SCION_ERROR( "Failed to add new texture!" );
+							}
+
+							m_AddAssetParams = {};
+							*pbOpen = false;
+							ImGui::CloseCurrentPopup();
+						}
+						else
+						{
+							// TODO: Add filepath error!
+						}
 					}
 				}
 				ImGui::SameLine();
@@ -234,10 +349,7 @@ class AssetModalCreator
 			// We always want to be able to cancel
 			if ( ImGui::Button( "Cancel" ) )
 			{
-				bTileset = false;
-				bPixelArt = false;
-				sAssetName.clear();
-				sFilepath.clear();
+				m_AddAssetParams = {};
 				*pbOpen = false;
 				ImGui::CloseCurrentPopup();
 			}
@@ -245,7 +357,12 @@ class AssetModalCreator
 			ImGui::EndPopup();
 		}
 	}
+
+  private:
+	static AddAssetParams m_AddAssetParams;
 };
+
+AddAssetParams AssetModalCreator::m_AddAssetParams = AddAssetParams{};
 
 } // namespace
 
