@@ -24,6 +24,7 @@ enum class EDisplay : uint64_t
 	GameSettingsView	= 1 << 9,
 	Console				= 1 << 10,
 	ObjectDetails		= 1 << 11,
+	ProfilerDisplay		= 1 << 12
 
 	// TODO: add more displays
 };

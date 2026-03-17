@@ -26,6 +26,9 @@ set( SCION_OPENGL_DEBUG_FORWARD_COMPATIBILITY		ON	)
 # Force discrete GPU on laptops fitted with Optimus / dual GPUs technology
 set( SCION_OPENGL_FORCE_DISCRETE_GPU	OFF	)
 
+# Enable tracy profiling
+option(SCION_ENABLE_TRACY "Enable Tracy profiler" ON)
+
 include(cmake/CompilerSettings.cmake)
 include(cmake/Options.cmake)
 

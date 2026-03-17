@@ -144,6 +144,7 @@ void MenuDisplay::Draw()
 			DrawDisplayItem( *pEditorState, ICON_FA_ARCHIVE " Packager Game", EDisplay::PackagerView );
 			DrawDisplayItem( *pEditorState, ICON_FA_TERMINAL " Console Logger", EDisplay::Console );
 			DrawDisplayItem( *pEditorState, ICON_FA_COG " Project Settings", EDisplay::GameSettingsView );
+			DrawDisplayItem( *pEditorState, ICON_FA_TACHOMETER_ALT " Profiler", EDisplay::ProfilerDisplay );
 
 			ImGui::Separator();
 			ImGui::EndMenu();

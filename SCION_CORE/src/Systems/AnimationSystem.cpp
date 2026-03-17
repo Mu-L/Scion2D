@@ -6,7 +6,7 @@
 #include "Core/ECS/Registry.h"
 
 #include "Logger/Logger.h"
-
+#include "Core/Profiling/ProfileCollector.h"
 #include <SDL3/SDL.h>
 
 using namespace Scion::Core::ECS;
@@ -17,6 +17,9 @@ namespace Scion::Core::Systems
 
 void AnimationSystem::Update( Scion::Core::ECS::Registry& registry, Scion::Rendering::Camera2D& camera )
 {
+
+	SCION_SYSTEM_ZONE( "AnimationSystem" );
+
 	auto view = registry.GetRegistry().view<AnimationComponent, SpriteComponent, TransformComponent>();
 	if ( view.size_hint() < 1 )
 		return;

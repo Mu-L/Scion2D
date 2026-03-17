@@ -33,6 +33,7 @@
 #include "editor/displays/ContentDisplay.h"
 #include "editor/displays/PackageDisplay.h"
 #include "editor/displays/ProjectSettingsDisplay.h"
+#include "editor/displays/ProfilerDisplay.h"
 
 #include "editor/scene/SceneManager.h"
 
@@ -49,6 +50,8 @@
 #include "editor/events/EditorEventTypes.h"
 #include "Core/Events/EventDispatcher.h"
 #include "Core/Events/EngineEventTypes.h"
+
+#include "Core/Profiling/ProfileCollector.h"
 
 #include "ScionUtilities/ThreadPool.h"
 #include "ScionUtilities/HelperUtilities.h"
@@ -719,6 +722,7 @@ bool Application::CreateDisplays()
 	pDisplayHolder->displays.push_back( std::move( pScriptDisplay ) );
 	pDisplayHolder->displays.push_back( std::move( pPackageDisplay ) );
 	pDisplayHolder->displays.push_back( std::make_unique<ProjectSettingsDisplay>() );
+	pDisplayHolder->displays.push_back( std::make_unique<ProfilerDisplay>() );
 
 	return true;
 }
@@ -748,6 +752,7 @@ void Application::InitDisplays()
 		ImGui::DockBuilderDockWindow( ICON_FA_LIST " Object Details", RightNodeId );
 		ImGui::DockBuilderDockWindow( ICON_FA_TH " Tileset", RightNodeId );
 		ImGui::DockBuilderDockWindow( ICON_FA_CLIPBOARD_LIST " Tile Details", RightNodeId );
+		ImGui::DockBuilderDockWindow( "###ProfilerDisplay", RightNodeId );
 		ImGui::DockBuilderDockWindow( ICON_FA_LAYER_GROUP " Tile Layers", TileLayerId );
 		ImGui::DockBuilderDockWindow( ICON_FA_SITEMAP " Scene Hierarchy", leftNodeId );
 		ImGui::DockBuilderDockWindow( ICON_FA_IMAGE " Scene", centerNodeId );
@@ -828,11 +833,15 @@ void Application::Run()
 
 	while ( m_bIsRunning )
 	{
+		PROFILE_COLLECTOR().BeginFrame();
+
 		ProcessEvents();
 		Update();
 		Render();
 		UpdateInputs();
 		SCENE_MANAGER().UpdateScenes();
+		PROFILE_COLLECTOR().EndFrame();
+		SCION_PROFILE_FRAME();
 	}
 
 	CleanUp();

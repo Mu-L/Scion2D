@@ -38,6 +38,7 @@
 #include "ScionUtilities/Tween.h"
 
 #include "Core/Scene/Scene.h"
+#include "Core/Profiling/ProfileCollector.h"
 
 #include "Rendering/Essentials/Texture.h"
 #include "Rendering/Essentials/Shader.h"
@@ -188,6 +189,7 @@ void ScriptingSystem::Update( Scion::Core::ECS::Registry& registry )
 		return;
 	}
 
+	SCION_SYSTEM_ZONE( "ScriptSystem" );
 	auto& pMainScript = registry.GetContext<MainScriptPtr>();
 	auto error = pMainScript->update();
 	if ( !error.valid() )

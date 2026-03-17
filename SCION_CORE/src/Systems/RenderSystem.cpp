@@ -12,6 +12,8 @@
 
 #include <Logger/Logger.h>
 
+#include "Core/Profiling/ProfileCollector.h"
+
 #include <ranges>
 
 using namespace Scion::Core::ECS;
@@ -29,6 +31,8 @@ RenderSystem::~RenderSystem() = default;
 
 void RenderSystem::Update( Scion::Core::ECS::Registry& registry, Scion::Rendering::Camera2D& camera )
 {
+	SCION_SYSTEM_ZONE( "RenderSystem" );
+
 	auto& mainRegistry = MAIN_REGISTRY();
 	auto& assetManager = mainRegistry.GetAssetManager();
 

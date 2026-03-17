@@ -4,6 +4,7 @@ file(GLOB_RECURSE CHARACTER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Character/*.cpp)
 file(GLOB_RECURSE ECS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/ECS/*.cpp)
 file(GLOB_RECURSE EVENTS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/*.cpp)
 file(GLOB_RECURSE LOADERS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Loaders/*.cpp)
+file(GLOB_RECURSE PROFILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Profiling/*.cpp)
 file(GLOB_RECURSE RESOURCES_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/*.cpp)
 file(GLOB_RECURSE SCENE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/*.cpp)
 file(GLOB_RECURSE SCRIPTING_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Scripting/*.cpp)
@@ -17,6 +18,7 @@ set(
 	${ECS_SRC}
 	${EVENTS_SRC}
 	${LOADERS_SRC}
+	${PROFILE_SRC}
 	${RESOURCES_SRC}
 	${SCENE_SRC}
 	${SCRIPTING_SRC}
@@ -52,7 +54,9 @@ target_compile_options(
     SCION_CORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>)
 
 
-find_package(SDL2_image)
+if(SCION_ENABLE_TRACY)
+	include(../cmake/TracyProfiler.cmake)
+endif()
 
 ## SCION_CORE_EDITOR - Editor Compile Flag is set
 add_library( SCION_CORE_EDITOR ${COMMON_CORE_SRC} )
@@ -80,6 +84,14 @@ target_link_libraries(SCION_CORE_EDITOR PUBLIC
 	SCION_WINDOW
 	SDL3_image::SDL3_image
 )
+
+if(SCION_ENABLE_TRACY)
+    target_compile_definitions(SCION_CORE_EDITOR PRIVATE TRACY_ENABLE)
+    target_link_libraries(SCION_CORE_EDITOR PRIVATE TracyClient)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		target_link_libraries(SCION_CORE_EDITOR PRIVATE pthread dl)
+	endif()
+endif()
 
 target_compile_options(
     SCION_CORE_EDITOR PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>)
