@@ -185,5 +185,6 @@ Check out these amazing open source projects that we are using in the engine. Ma
 -   **[Libzippp](https://github.com/ctabin/libzippp)** - C++ wrapper around the libzip library.
 -   **[tinyxml2](https://github.com/leethomason/tinyxml2)** - TinyXML2 is a simple, small, efficient, C++ XML parser that can be easily integrated into other programs.
 -   **[FMT](https://github.com/fmtlib/fmt)** - A modern formatting library
+-   **[Tracy Profiler](https://github.com/wolfpld/tracy)** - A real time, nanosecond resolution, remote telemetry, hybrid frame and sampling profiler for games and other applications.
 
 _Thank you to all the contributors and maintainers of these projects!_ ❤️
