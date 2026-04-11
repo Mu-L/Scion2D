@@ -33,7 +33,7 @@ Whether you're here to learn alongside me, peek at the source, or just curious a
 
 ---- 
 ### Hub
-![scionhub](https://github.com/user-attachments/assets/d9be3935-fa0f-470a-ad03-d1c31a241565)
+![scionhub](<img width="1366" height="768" alt="scion_hub" src="https://github.com/user-attachments/assets/a4d7d884-de79-4a93-b54c-bb658862a537" />)
 
 ----
 #### Scion Editor
