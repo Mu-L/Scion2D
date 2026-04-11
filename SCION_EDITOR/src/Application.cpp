@@ -109,7 +109,7 @@ bool Application::Initialize()
 	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 
 	// Create the Window
-	m_pWindow = std::make_unique<Scion::Windowing::Window>( "SCION 2D", 800, 600, true, SDL_WINDOW_OPENGL );
+	m_pWindow = std::make_unique<Scion::Windowing::Window>( "SCION 2D", 1366, 768, true, SDL_WINDOW_OPENGL );
 
 	/*
 	 * SDL Hack - If we create the window as borderless, we lose the icon in the title bar.

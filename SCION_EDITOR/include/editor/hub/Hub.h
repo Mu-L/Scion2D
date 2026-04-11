@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include "editor/hub/RecentProjects.h"
 
 namespace Scion::Windowing
 {
@@ -24,19 +25,28 @@ class Hub
   public:
 	Hub( Scion::Windowing::Window& window );
 	~Hub();
+
 	bool Run();
 
   private:
 	bool Initialize();
 	void DrawGui();
-
-	void DrawDefault();
-	void DrawNewProject();
-	void DrawOpenProject();
-
 	void ProcessEvents();
 	void Update();
 	void Render();
+
+	void DrawLeftPanel();
+	void DrawRightPanel();
+	void DrawNewProject();
+	void DrawOpenProject();
+	void DrawRecentProjectsList();
+	void DrawBanner();
+	void DrawStatusBar();
+
+	void OpenRecentProject( int index );
+	void TryLoadSelectedRecent();
+	bool BrowseForProjectFile();
+	bool BrowseForFolder( std::string& outPath );
 
   private:
 	Scion::Windowing::Window& m_Window;
@@ -52,5 +62,14 @@ class Hub
 	std::string m_sNewProjectPath;
 	std::string m_sPrevProjectPath;
 	std::string m_sPrevProjectName;
+
+	RecentProjects m_RecentProjects{};
+	int m_SelectedRecent{ -1 };
+	int m_PendingRemove{ -1 };
+	bool m_bShowCreateError{ false };
+	bool m_bShowLoadError{ false };
+
+	std::string m_sErrorMsg{};
 };
+
 } // namespace Scion::Editor
