@@ -16,6 +16,8 @@ class CommandManager
 									RectToolRemoveTilesCmd, RemoveTileLayerCmd, AddTileLayerCmd, ChangeTileLayerNameCmd,
 									MoveTileLayerCmd /* Add other command types */>
 {
+  public:
+	~CommandManager() = default;
 };
 
 } // namespace Scion::Editor

@@ -9,7 +9,7 @@ message( "\t\tc  : " ${CMAKE_C_COMPILER_ID} " - " ${CMAKE_C_COMPILER_VERSION} )
 if( WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
 	set( CXX_COMPILE_FLAGS
 # ------------------------------------ Compiler flags ----------------------------------------------- #
-						/std:c++20
+#						/std:c++23
 						/MP
 #						/arch:AVX
 #						/arch:AVX2
@@ -59,7 +59,7 @@ endif()
 
 if( UNIX AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
 	set( CXX_COMPILE_FLAGS
-						-std=c++20
+						-std=c++23
 						-no-pie
 						-fno-pie
 						-ffunction-sections
@@ -105,7 +105,7 @@ endif()
 
 if( UNIX AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 	set( CXX_COMPILE_FLAGS
-						-std=c++20
+						-std=c++23
 						-fno-pie
 						-ffunction-sections
 						-fdata-sections

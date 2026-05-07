@@ -25,6 +25,7 @@ class EditorSceneManager : public Scion::Core::SceneManager
 {
   public:
 	static EditorSceneManager& GetInstance();
+	virtual ~EditorSceneManager();
 
 	virtual bool AddScene( const std::string& sSceneName, Scion::Core::EMapType eType ) override;
 	bool AddSceneObject( const std::string& sSceneName, const std::string& sSceneData );
@@ -53,14 +54,12 @@ class EditorSceneManager : public Scion::Core::SceneManager
 	static void CreateSceneManagerLuaBind( sol::state& lua );
 
   private:
-	std::unique_ptr<ToolManager> m_pToolManager{ nullptr };
-	std::unique_ptr<CommandManager> m_pCommandManager{ nullptr };
-
-	std::unique_ptr<Scion::Core::Events::EventDispatcher> m_pSceneDispatcher{ nullptr };
+	std::unique_ptr<ToolManager> m_pToolManager;
+	std::unique_ptr<CommandManager> m_pCommandManager;
+	std::unique_ptr<Scion::Core::Events::EventDispatcher> m_pSceneDispatcher;
 
   private:
 	EditorSceneManager();
-	virtual ~EditorSceneManager() = default;
 	EditorSceneManager( const EditorSceneManager& ) = delete;
 	EditorSceneManager& operator=( const EditorSceneManager& ) = delete;
 };

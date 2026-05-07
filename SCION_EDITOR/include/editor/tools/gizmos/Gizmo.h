@@ -62,7 +62,7 @@ class Gizmo : public AbstractTool
 	std::unique_ptr<GizmoAxisParams> m_pXAxisParams;
 	std::unique_ptr<GizmoAxisParams> m_pYAxisParams;
 	std::unique_ptr<Scion::Rendering::SpriteBatchRenderer> m_pBatchRenderer;
-	std::unique_ptr<Scion::Core::Events::EventDispatcher> m_pEventDispatcher{ nullptr };
+	std::unique_ptr<Scion::Core::Events::EventDispatcher> m_pEventDispatcher;
 
 	entt::entity m_SelectedEntity;
 	glm::vec2 m_LastMousePos;

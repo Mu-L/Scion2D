@@ -40,6 +40,7 @@ Gizmo::Gizmo( const GizmoAxisParams& xAxisParams, const GizmoAxisParams& yAxisPa
 	, m_pXAxisParams{ nullptr }
 	, m_pYAxisParams{ nullptr }
 	, m_pBatchRenderer{ std::make_unique<Scion::Rendering::SpriteBatchRenderer>() }
+	, m_pEventDispatcher{ nullptr }
 	, m_SelectedEntity{ entt::null }
 	, m_LastMousePos{ 0.f }
 	, m_bOverXAxis{ false }

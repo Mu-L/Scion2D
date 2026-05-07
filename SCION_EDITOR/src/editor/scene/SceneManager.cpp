@@ -206,8 +206,13 @@ std::string EditorSceneManager::GetSceneFilepath( const std::string& sSceneName 
 
 EditorSceneManager::EditorSceneManager()
 	: Scion::Core::SceneManager()
+	, m_pToolManager{ nullptr }
+	, m_pCommandManager{ nullptr }
+	, m_pSceneDispatcher{ nullptr }
 {
 }
+
+EditorSceneManager::~EditorSceneManager() = default;
 
 void EditorSceneManager::CreateSceneManagerLuaBind( sol::state& lua )
 {

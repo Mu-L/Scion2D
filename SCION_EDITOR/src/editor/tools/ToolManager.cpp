@@ -25,6 +25,7 @@ ToolManager::ToolManager()
 
 	SetToolActive( EToolType::RECT_FILL_TILE );
 }
+ToolManager::~ToolManager() = default;
 
 void ToolManager::Update( Scion::Core::Canvas& canvas )
 {

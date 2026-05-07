@@ -29,6 +29,7 @@ template <CommandType... Cmds>
 class AbstractCommandManager
 {
   public:
+	~AbstractCommandManager() {}
 	/*
 	 * @brief Runs Undo function for whatever action/cmd is on the undo stack.
 	 * Pushes that function onto the redo stack.

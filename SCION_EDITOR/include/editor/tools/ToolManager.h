@@ -30,7 +30,7 @@ class ToolManager
 {
   public:
 	ToolManager();
-	~ToolManager() = default;
+	~ToolManager();
 
 	void Update( Scion::Core::Canvas& canvas );
 

@@ -14,7 +14,7 @@ if(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
         "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
