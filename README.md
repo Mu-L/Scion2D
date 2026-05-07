@@ -38,7 +38,7 @@ Whether you're here to learn alongside me, peek at the source, or just curious a
 
 ----
 #### Scion Editor
-![neweditorpic](https://github.com/user-attachments/assets/147c74eb-82e7-42e5-a065-4b86b6cb1f88)
+<img width="1920" height="1032" alt="NewSceneEditorUI" src="https://github.com/user-attachments/assets/374c627f-4e75-4c6e-acee-2caf358ea294" />
 
 ----
 
