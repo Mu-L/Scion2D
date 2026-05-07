@@ -510,7 +510,7 @@ void SceneHierarchyDisplay::Update()
 void SceneHierarchyDisplay::Draw()
 {
 	auto pCurrentScene = SCENE_MANAGER().GetCurrentSceneObject();
-	if ( !ImGui::Begin( ICON_FA_SITEMAP " Scene Hierarchy" ) || !pCurrentScene )
+	if ( !ImGui::Begin( ICON_FA_SITEMAP " Scene Hierarchy###SceneHierarchyDisplay" ) || !pCurrentScene )
 	{
 		ImGui::End();
 		return;

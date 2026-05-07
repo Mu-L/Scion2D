@@ -24,6 +24,7 @@
 #include "editor/systems/EditorRenderSystem.h"
 #include "editor/utilities/EditorFramebuffers.h"
 #include "editor/utilities/EditorUtilities.h"
+#include "editor/utilities/EditorState.h"
 #include "editor/utilities/imgui/ImGuiUtils.h"
 #include "editor/utilities/fonts/IconsFontAwesome5.h"
 #include "editor/scene/SceneManager.h"
@@ -503,6 +504,7 @@ void TilemapDisplay::DrawToolbar()
 TilemapDisplay::TilemapDisplay()
 	: m_pTilemapCam{ std::make_unique<Scion::Rendering::Camera2D>() }
 	, m_bWindowActive{ false }
+	, m_bIsDirty{ false }
 {
 	ADD_EVENT_HANDLER( Scion::Core::Events::KeyEvent, &TilemapDisplay::HandleKeyPressedEvent, *this );
 
@@ -522,11 +524,29 @@ TilemapDisplay::~TilemapDisplay()
 
 void TilemapDisplay::Draw()
 {
-	if ( !ImGui::Begin( ICON_FA_MAP " Tilemap Editor" ) )
+	if ( auto& pEditorState = MAIN_REGISTRY().GetContext<EditorStatePtr>() )
+	{
+		if ( !pEditorState->IsDisplayOpen( EDisplay::TilemapView ) )
+		{
+			return;
+		}
+	}
+
+	std::string sDisplayName{ ICON_FA_MAP " Tilemap Editor" };
+
+	if ( m_bIsDirty )
+	{
+		sDisplayName += " *";
+	}
+
+	sDisplayName += "###TilemapDisplay";
+
+	if ( !ImGui::Begin( sDisplayName.c_str() ) )
 	{
 		ImGui::End();
 		return;
 	}
+
 
 	DrawToolbar();
 	RenderTilemap();

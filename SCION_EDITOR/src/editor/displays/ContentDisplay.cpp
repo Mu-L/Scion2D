@@ -60,7 +60,7 @@ void ContentDisplay::Draw()
 		}
 	}
 
-	if ( !ImGui::Begin( ICON_FA_FOLDER " Content Browser" ) )
+	if ( !ImGui::Begin( ICON_FA_FOLDER " Content Browser###ContentDisplay" ) )
 	{
 		ImGui::End();
 		return;

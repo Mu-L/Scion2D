@@ -47,5 +47,6 @@ class TilemapDisplay : public IDisplay
   private:
 	std::unique_ptr<Scion::Rendering::Camera2D> m_pTilemapCam;
 	bool m_bWindowActive;
+	bool m_bIsDirty;
 };
 } // namespace Scion::Editor

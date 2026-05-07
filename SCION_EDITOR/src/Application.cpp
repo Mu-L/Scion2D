@@ -65,6 +65,8 @@
 #include "editor/utilities/imgui/Gui.h"
 // ===================================
 
+static constexpr float FOOTER_HEIGHT = 24.f;
+
 namespace Scion::Editor
 {
 bool Application::Initialize()
@@ -729,43 +731,81 @@ bool Application::CreateDisplays()
 
 void Application::InitDisplays()
 {
+	ImGuiViewport* pViewport = ImGui::GetMainViewport();
+	pViewport->WorkSize.y -= FOOTER_HEIGHT;
 	const auto dockSpaceId = ImGui::DockSpaceOverViewport( 0, ImGui::GetMainViewport() );
 
-	if ( static auto firstTime = true; firstTime ) [[unlikely]]
+	static auto firstTime = true;
+
+	if ( firstTime )
 	{
 		firstTime = false;
 
 		ImGui::DockBuilderRemoveNode( dockSpaceId );
 		ImGui::DockBuilderAddNode( dockSpaceId );
 
-		auto centerNodeId = dockSpaceId;
-		const auto leftNodeId =
-			ImGui::DockBuilderSplitNode( centerNodeId, ImGuiDir_Left, 0.2f, nullptr, &centerNodeId );
+		auto topNodeId = dockSpaceId;
 
-		auto RightNodeId = ImGui::DockBuilderSplitNode( centerNodeId, ImGuiDir_Right, 0.3f, nullptr, &centerNodeId );
-
-		const auto LogNodeId =
-			ImGui::DockBuilderSplitNode( centerNodeId, ImGuiDir_Down, 0.25f, nullptr, &centerNodeId );
-
-		auto TileLayerId = ImGui::DockBuilderSplitNode( RightNodeId, ImGuiDir_Down, 0.4f, nullptr, &RightNodeId );
-
-		ImGui::DockBuilderDockWindow( ICON_FA_LIST " Object Details", RightNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_TH " Tileset", RightNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_CLIPBOARD_LIST " Tile Details", RightNodeId );
-		ImGui::DockBuilderDockWindow( "###ProfilerDisplay", RightNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_LAYER_GROUP " Tile Layers", TileLayerId );
-		ImGui::DockBuilderDockWindow( ICON_FA_SITEMAP " Scene Hierarchy", leftNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_IMAGE " Scene", centerNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_CODE " Script List", centerNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_ARCHIVE " Package Game", centerNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_COG " Project Settings", centerNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_MAP " Tilemap Editor", centerNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_FILE_ALT " Assets", LogNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_TERMINAL " Logs", LogNodeId );
-		ImGui::DockBuilderDockWindow( ICON_FA_FOLDER " Content Browser", LogNodeId );
+		// -------------------------------------------------------------
+		// Top main tabs: Project Settings, Package Game, ScriptList
+		// PLUS a tab called Scene Editor (this will host the inner dock)
+		// -------------------------------------------------------------
+		ImGui::DockBuilderDockWindow( "###ProjectSettingsDisplay", topNodeId );
+		ImGui::DockBuilderDockWindow( ICON_FA_CODE " Script List", topNodeId );
+		ImGui::DockBuilderDockWindow( ICON_FA_ARCHIVE " Package Game", topNodeId );
+		ImGui::DockBuilderDockWindow( ICON_FA_VECTOR_SQUARE " Scene Editor", topNodeId );
 
 		ImGui::DockBuilderFinish( dockSpaceId );
 	}
+
+	// ---- Scene Editor inner dockspace ----
+	ImGui::Begin( ICON_FA_VECTOR_SQUARE " Scene Editor" );
+
+	static ImGuiID innerDockId = 0;
+
+	if ( innerDockId == 0 )
+	{
+		// Create an inner dockspace
+		innerDockId = ImGui::GetID( "SceneEditorDock" );
+
+		ImGui::DockBuilderRemoveNode( innerDockId );
+		ImGui::DockBuilderAddNode( innerDockId );
+
+		auto centerId = innerDockId;
+
+		auto bottomNodeId = ImGui::DockBuilderSplitNode( centerId, ImGuiDir_Down, 0.25f, nullptr, &centerId );
+		auto leftId = ImGui::DockBuilderSplitNode( centerId, ImGuiDir_Left, 0.22f, nullptr, &centerId );
+		auto rightId = ImGui::DockBuilderSplitNode( centerId, ImGuiDir_Right, 0.28f, nullptr, &centerId );
+		auto rightBottomId = ImGui::DockBuilderSplitNode( rightId, ImGuiDir_Down, 0.40f, nullptr, &rightId );
+
+		// -------------------------------------------------------------
+		// Bottom tabs: Logs / Assets / Content Browser
+		// -------------------------------------------------------------
+		ImGui::DockBuilderDockWindow( ICON_FA_TERMINAL " Logs", bottomNodeId );
+		ImGui::DockBuilderDockWindow( "###AssetDisplay", bottomNodeId );
+		ImGui::DockBuilderDockWindow( "###ContentDisplay", bottomNodeId );
+
+		// LEFT
+		ImGui::DockBuilderDockWindow( "###SceneHierarchyDisplay", leftId );
+
+		// CENTER
+		ImGui::DockBuilderDockWindow( ICON_FA_IMAGE " Scene", centerId );
+		ImGui::DockBuilderDockWindow( "###TilemapDisplay", centerId );
+
+		// RIGHT (top)
+		ImGui::DockBuilderDockWindow( ICON_FA_TH " Tileset", rightId );
+		ImGui::DockBuilderDockWindow( ICON_FA_CLIPBOARD_LIST " Tile Details", rightId );
+		ImGui::DockBuilderDockWindow( ICON_FA_LIST " Object Details", rightId );
+
+		// RIGHT (bottom)
+		ImGui::DockBuilderDockWindow( ICON_FA_LAYER_GROUP " Tile Layers", rightBottomId );
+
+		ImGui::DockBuilderFinish( innerDockId );
+	}
+
+	ImGui::DockSpace( innerDockId );
+
+	ImGui::End();
 }
 
 void Application::RenderDisplays()

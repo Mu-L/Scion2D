@@ -42,7 +42,7 @@ void ProjectSettingsDisplay::Draw()
 		}
 	}
 
-	ImGui::Begin( ICON_FA_COG " Project Settings" );
+	ImGui::Begin( ICON_FA_COG " Project Settings###ProjectSettingsDisplay" );
 	const float leftWidth = 250.0f;
 
 	ImGui::Columns( 2, nullptr, true );
