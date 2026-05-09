@@ -49,6 +49,8 @@ InputManager::InputManager()
 			}
 		}
 	}
+
+	SDL_free( gamepads );
 }
 
 void InputManager::RegisterLuaKeyNames( sol::state& lua )
