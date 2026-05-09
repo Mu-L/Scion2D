@@ -81,7 +81,7 @@ bool Application::Initialize()
 	SCION_INIT_CRASH_LOGS();
 
 	// Init SDL
-	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) )
+	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK ) )
 	{
 		std::string error = SDL_GetError();
 		SCION_ERROR( "Failed to initialize SDL: {0}", error );

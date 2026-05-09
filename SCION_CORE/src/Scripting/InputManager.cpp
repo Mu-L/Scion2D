@@ -23,7 +23,7 @@ InputManager::InputManager()
 	// Load already connected devices
 	for ( int i = 0; i < count; ++i )
 	{
-		SDL_Gamepad* pController = SDL_OpenGamepad( i );
+		SDL_Gamepad* pController = SDL_OpenGamepad( gamepads[ i ] );
 		if ( pController )
 		{
 			std::shared_ptr<Gamepad> gamepad{ nullptr };

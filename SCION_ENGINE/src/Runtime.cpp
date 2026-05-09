@@ -84,7 +84,7 @@ void RuntimeApp::Initialize()
 	SCION_INIT_CRASH_LOGS();
 
 	// Init SDL
-	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) )
+	if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK ) )
 	{
 		std::string error = SDL_GetError();
 		throw std::runtime_error( fmt::format( "Failed to initialize SDL: {}", error ) );
