@@ -9,22 +9,14 @@ using namespace Scion::Core::Utils;
 namespace Scion::Core::ECS
 {
 
-Registry::Registry()
-	: m_pRegistry{ std::make_shared<entt::registry>() }
-{
-}
-
-Registry::~Registry()
-{
-
-}
+Registry::~Registry() = default;
 
 void Registry::ClearRegistry()
 {
-	auto view = m_pRegistry->view<entt::entity>( entt::exclude<PersistentComponent> );
+	auto view = m_Registry.view<entt::entity>( entt::exclude<PersistentComponent> );
 	for ( auto entity : view )
 	{
-		m_pRegistry->destroy( entity );
+		m_Registry.destroy( entity );
 	}
 }
 
@@ -40,9 +32,9 @@ void Registry::ClearPendingEntities()
 
 	for ( auto entity : m_EntitiesPendingDestruction )
 	{
-		if ( m_pRegistry->valid( entity ) )
+		if ( m_Registry.valid( entity ) )
 		{
-			m_pRegistry->destroy( entity );
+			m_Registry.destroy( entity );
 		}
 	}
 

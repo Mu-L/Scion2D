@@ -14,27 +14,33 @@ enum ERegistryType
 class Registry
 {
   public:
-	Registry();
+	Registry() = default;
 	~Registry();
+
+	Registry( Registry&& ) = default;
+	Registry& operator=( Registry&& ) = default;
+	// no copy
+	Registry( const Registry& ) = delete;
+	Registry& operator=( const Registry& ) = delete;
 
 	/*
 	 * @brief Checks to see if the entity is valid.
 	 * @param the entity to check.
 	 * @return Returns true if the entity is valid, false otherwise.
 	 */
-	inline bool IsValid( entt::entity entity ) const { return m_pRegistry->valid( entity ); }
+	inline bool IsValid( entt::entity entity ) const { return m_Registry.valid( entity ); }
 
 	/*
 	 * @brief Get the actual registry
 	 * @return Returns the underlying entt::registry
 	 */
-	inline entt::registry& GetRegistry() { return *m_pRegistry; }
+	inline entt::registry& GetRegistry() { return m_Registry; }
 
 	/*
 	 * @brief Creates a new entity and adds it to the registry.
 	 * @return Returns the newly created entt::entity.
 	 */
-	inline entt::entity CreateEntity() { return m_pRegistry->create(); }
+	inline entt::entity CreateEntity() { return m_Registry.create(); }
 
 	void ClearRegistry();
 	void AddToPendingDestruction( entt::entity entity );
@@ -78,7 +84,7 @@ class Registry
 	static void RegisterMetaComponent();
 
   private:
-	std::shared_ptr<entt::registry> m_pRegistry;
+	entt::registry m_Registry;
 	ERegistryType m_eType{ ERegistryType::ScionRegistry };
 	std::vector<entt::entity> m_EntitiesPendingDestruction;
 };
